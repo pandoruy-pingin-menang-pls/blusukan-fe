@@ -1,44 +1,32 @@
-`npx expo start -c`
+# Blusukan
 
-**Phase 1: Repository, Environment, & Architecture Setup**
-- Struktur folder scalable untuk Expo Router (app/, components/, features/,
-  services/api, store/, hooks/, constants/ termasuk design tokens, utils/)
-- Setup ESLint/Prettier, TypeScript, absolute import alias, .env (EXPO_PUBLIC_*)
-- Branching strategy dari development s.d. demo day release
+### Development Commands & UI Kit
 
-**Phase 2: Design System & Shared Components (UI Kit)**
-- Design tokens sesuai arahan desain di atas: warna, tipografi, spacing, radius,
-  elevation — didefinisikan sebagai NativeWind theme config, bukan hardcoded
-- Daftar base component yang harus dibuat duluan (Button, Input, Modal, Card,
-  Badge/Stamp, BottomSheet, Toast) lengkap dengan varian per-mode (Dolan/Bakul)
-- Layout utama: TopBar, Mode-Switcher (Dolan↔Bakul), TabBar, Wrapper/Screen container
+To start the application and clear the Metro bundler cache, run the following command:
 
-**Phase 3: Routing & Pages Implementation (Staged)**
-- Pemetaan routing: Public (Login/Onboarding) vs Protected (Dolan Home, Peta &
-  Rute, Bakul Dashboard, Stamp Wallet, dst — sesuaikan dengan 2.6 Low-Fidelity
-  Prototype di proposal)
-- Pecah ke Stage prioritas (3.1 Auth & Onboarding, 3.2 Dolan Mode core, 3.3 Bakul
-  Mode core, 3.4 Gamifikasi & Redemption, dst.)
-- Rincian komponen spesifik per halaman
+```bash
+npx expo start -c
 
-**Phase 4: State Management & API Integration (Core Focus)**
-- Skema state: mana yang global (Zustand — mis. active mode, user session, stamp
-  count) vs local (form state, UI toggle)
-- Mapping endpoint FastAPI ke tiap screen/komponen (itinerary generation, stok
-  prediktif, ingest multimodal, "sold" logging, redemption)
-- Standar Loading (skeleton), Error handling, Success feedback (toast) yang
-  konsisten di semua flow
+```
 
-**Phase 5: Security, Testing, & Optimization**
-- Route guard berbasis session/token (Expo SecureStore)
-- Rencana unit test dasar untuk utils & reusable component
-- Optimasi: lazy loading untuk screen berat (peta), image optimization untuk
-  hasil upload foto menu/produk merchant
+#### Navigation: Normal Flow vs. UI Kit
 
-# Notes:
-# saat mau CEK UI kit:
+If you are on **macOS/Linux**, you can use the commands below in a separate terminal to quickly swap the initial route. This allows you to preview the UI Kit without needing to navigate manually.
+
+**To switch to the UI Kit:**
+
+```bash
 sed -i '' 's|/(auth)/login|/_dev-ui-kit|' src/app/index.tsx
 
-# saat mau BALIK ke flow normal:
+```
+
+**To revert to the Normal Flow (Auth/Login):**
+
+```bash
 sed -i '' 's|/_dev-ui-kit|/(auth)/login|' src/app/index.tsx
-Reload (r di terminal) setiap habis switch. Simpel, nggak perlu nav manual tiap kali.
+
+```
+
+> **⚠️ Important Notes:**
+> * **Reload Required:** After running either `sed` command, you must press **`r`** in your active Expo terminal to reload the app and see the changes.
+> * **Windows Users:** The `sed` command is not natively supported. Please manually update the route string inside `src/app/index.tsx` when switching between flows.
