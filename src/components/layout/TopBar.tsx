@@ -2,10 +2,12 @@ import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useAppStore } from "@/store/useAppStore";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function TopBar() {
   const router = useRouter();
   const { mode, setMode, userName } = useAppStore();
+  const insets = useSafeAreaInsets();
 
   const initials = userName
     ? userName.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()
@@ -18,7 +20,10 @@ export function TopBar() {
   }
 
   return (
-    <View className="px-5 pt-4 pb-3.5 border-b border-line">
+    <View 
+      className="px-5 pb-3.5 border-b border-line"
+      style={{ paddingTop: Math.max(insets.top, 50) }}
+    >
       <View className="flex-row items-center justify-between mb-3.5">
         <View className="flex-row items-center gap-2">
           <View className="w-[30px] h-[30px] rounded-lg bg-navy-800 items-center justify-center">

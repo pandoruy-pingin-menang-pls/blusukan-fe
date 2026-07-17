@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type NavItem = { href: string; icon: string; label: string };
 
@@ -12,7 +13,7 @@ const DOLAN_ITEMS: NavItem[] = [
 ];
 
 const BAKUL_ITEMS: NavItem[] = [
-  { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Dasbor" },
+  { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Beranda" },
   { href: "/(bakul)/stock", icon: "boxes-stacked", label: "Prediksi" },
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
 ];
@@ -20,10 +21,14 @@ const BAKUL_ITEMS: NavItem[] = [
 export function BottomNav({ mode }: { mode: "dolan" | "bakul" }) {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const items = mode === "dolan" ? DOLAN_ITEMS : BAKUL_ITEMS;
 
   return (
-    <View className="flex-row border-t border-line bg-white px-2 py-2.5">
+    <View 
+      className="flex-row border-t border-line bg-white px-2 pt-2.5"
+      style={{ paddingBottom: Math.max(insets.bottom, 10) }}
+    >
       {items.map((item) => {
         const active = pathname === item.href;
         return (
