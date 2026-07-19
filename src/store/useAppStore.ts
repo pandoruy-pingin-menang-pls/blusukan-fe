@@ -7,6 +7,8 @@ type AppState = {
   setMode: (mode: Mode) => void;
   userName: string;
   setUserName: (name: string) => void;
+  isLoggedIn: boolean;
+  setIsLoggedIn: (status: boolean) => void;
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -14,4 +16,6 @@ export const useAppStore = create<AppState>((set) => ({
   setMode: (mode) => set({ mode }),
   userName: "",
   setUserName: (userName) => set({ userName }),
+  isLoggedIn: false,
+  setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
 }));
