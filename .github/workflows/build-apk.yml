@@ -42,10 +42,15 @@ jobs:
       - name: Build APK (EAS Local)
         run: eas build --platform android --profile preview --local --non-interactive --output blusukan.apk
 
-      - name: Rename APK dengan versi
+      - name: Ambil versi dari app.json
+        id: get_version
         run: |
           VERSION=$(node -e "console.log(require('./app.json').expo.version)")
-          mv blusukan.apk blusukan-v$VERSION.apk
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "apk_name=blusukan-v$VERSION.apk" >> $GITHUB_OUTPUT
+
+      - name: Rename APK dengan versi
+        run: mv blusukan.apk ${{ steps.get_version.outputs.apk_name }}
 
       - name: Upload APK ke GitHub
         uses: actions/upload-artifact@v4
@@ -53,13 +58,6 @@ jobs:
           name: Blusukan
           path: ${{ steps.get_version.outputs.apk_name }}
           retention-days: 7
-
-      - name: Ambil versi dari app.json
-        id: get_version
-        run: |
-          VERSION=$(node -e "console.log(require('./app.json').expo.version)")
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-          echo "apk_name=blusukan-v$VERSION.apk" >> $GITHUB_OUTPUT
 
       - name: Tampilkan di Halaman Release Utama
         uses: ncipollo/release-action@v1
