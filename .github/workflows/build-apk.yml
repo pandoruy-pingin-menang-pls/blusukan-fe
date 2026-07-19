@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout repository
@@ -46,3 +48,12 @@ jobs:
           name: Blusukan
           path: app-release.apk
           retention-days: 7
+
+      - name: Tampilkan di Halaman Release Utama
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "app-release.apk"
+          tag: "latest"
+          name: "Versi Terbaru (Latest Build)"
+          body: "Silakan download file APK di bawah ini (app-release.apk) untuk menginstall aplikasinya di HP Android Anda."
+          allowUpdates: true
