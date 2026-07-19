@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { useAppStore } from "../../store/useAppStore";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Alert } from "../../components/ui/Alert";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,12 @@ export default function LoginScreen() {
     
     try {
       await login(email, password);
-      router.replace("/(auth)/select-mode");
+      const currentUser = useAppStore.getState().user;
+      if (currentUser?.role === "pedagang") {
+        router.replace("/(merchant)/home");
+      } else {
+        router.replace("/(dolan)/home");
+      }
     } catch (error: any) {
       if (error.response?.status === 422) {
         const details = error.response.data.detail;
@@ -50,11 +56,7 @@ export default function LoginScreen() {
         Silakan masuk ke akun Blusukan Anda
       </Text>
 
-      {errorMsg ? (
-        <View className="bg-warn-bg p-3 rounded-lg mb-4">
-          <Text className="text-warn font-sans-medium">{errorMsg}</Text>
-        </View>
-      ) : null}
+      <Alert message={errorMsg} type="error" />
 
       <View className="space-y-4 mb-8 gap-4">
         <Input 

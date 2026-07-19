@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { Link, router } from "expo-router";
-import { useAppStore } from "../../store/useAppStore";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Alert } from "../../components/ui/Alert";
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState("");
@@ -13,8 +13,6 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState("");
-
-  const register = useAppStore((state) => state.register);
 
   const handleRegister = async () => {
     setErrors({});
@@ -36,30 +34,11 @@ export default function RegisterScreen() {
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      await register(email, fullName, password);
-      router.replace("/(auth)/select-mode");
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        const details = error.response.data.detail;
-        if (Array.isArray(details)) {
-          const apiErrors: Record<string, string> = {};
-          details.forEach((d: any) => {
-            const field = d.loc[d.loc.length - 1];
-            apiErrors[field] = d.msg;
-          });
-          setErrors(apiErrors);
-        } else {
-          setGlobalError("Validasi gagal");
-        }
-      } else {
-        setGlobalError("Terjadi kesalahan, periksa koneksi internet Anda");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    // Go to next step
+    router.push({
+      pathname: "/(auth)/role-selection",
+      params: { email, fullName, password }
+    });
   };
 
   return (
@@ -73,11 +52,7 @@ export default function RegisterScreen() {
         Mulai petualangan dan jualanmu di Blusukan
       </Text>
 
-      {globalError ? (
-        <View className="bg-warn-bg p-3 rounded-lg mb-4">
-          <Text className="text-warn font-sans-medium">{globalError}</Text>
-        </View>
-      ) : null}
+      <Alert message={globalError} type="error" />
 
       <View className="space-y-4 mb-8 gap-4">
         <View>
@@ -126,9 +101,8 @@ export default function RegisterScreen() {
       </View>
 
       <Button 
-        label={isLoading ? "Memproses..." : "Daftar"} 
+        label="Lanjut" 
         onPress={handleRegister} 
-        disabled={isLoading} 
       />
 
       <View className="flex-row justify-center mt-6">
