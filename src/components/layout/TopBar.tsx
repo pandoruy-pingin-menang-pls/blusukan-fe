@@ -5,21 +5,12 @@ import { useAppStore } from "@/store/useAppStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function TopBar() {
-  const router = useRouter();
-  const segments = useSegments();
   const { user } = useAppStore();
   const insets = useSafeAreaInsets();
-
-  const currentMode = segments[0] === "(bakul)" ? "bakul" : "dolan";
 
   const initials = user?.full_name
     ? user.full_name.trim().split(/\s+/).slice(0, 2).map((w: string) => w[0]).join("").toUpperCase()
     : "?";
-
-  function handleSwitch(target: "dolan" | "bakul") {
-    if (target === currentMode) return;
-    router.replace(target === "dolan" ? "/(dolan)/home" : "/(bakul)/home");
-  }
 
   return (
     <View 
@@ -41,48 +32,6 @@ export function TopBar() {
         </View>
       </View>
 
-      {user?.role === "wisatawan" && (
-        <View className="flex-row bg-surface border border-line rounded-xl p-[3px] gap-0.5">
-          <Pressable
-            onPress={() => handleSwitch("dolan")}
-            className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-[9px] ${
-              currentMode === "dolan" ? "bg-navy-800" : ""
-            }`}
-          >
-            <FontAwesome6
-              name="map-location-dot"
-              size={12}
-              color={currentMode === "dolan" ? "#fff" : "#5B6572"}
-            />
-            <Text
-              className={`text-[13px] font-sans-semibold ${
-                currentMode === "dolan" ? "text-white" : "text-ink-soft"
-              }`}
-            >
-              Dolan Mode
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => handleSwitch("bakul")}
-            className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-[9px] ${
-              currentMode === "bakul" ? "bg-navy-800" : ""
-            }`}
-          >
-            <FontAwesome6
-              name="store"
-              size={12}
-              color={currentMode === "bakul" ? "#fff" : "#5B6572"}
-            />
-            <Text
-              className={`text-[13px] font-sans-semibold ${
-                currentMode === "bakul" ? "text-white" : "text-ink-soft"
-              }`}
-            >
-              Bakul Mode
-            </Text>
-          </Pressable>
-        </View>
-      )}
     </View>
   );
 }
