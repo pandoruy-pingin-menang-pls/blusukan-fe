@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "blusukan-fe",
+    "name": "Blusukan",
     "slug": "blusukan-fe",
     "version": "1.0.0",
     "scheme": "blusukan",
@@ -11,7 +11,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.kurrorro.blusukanfe",
+      "package": "com.bytesfest.blusukan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
