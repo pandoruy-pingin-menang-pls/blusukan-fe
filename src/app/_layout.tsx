@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { useAppStore } from "../store/useAppStore";
 import {
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
@@ -34,11 +35,19 @@ export default function RootLayout() {
     PlayfairDisplay_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+  const { restoreSession, isLoadingAuth } = useAppStore();
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    restoreSession();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && !isLoadingAuth) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, isLoadingAuth]);
+
+  if (!fontsLoaded || isLoadingAuth) return null;
 
   return (
     <>

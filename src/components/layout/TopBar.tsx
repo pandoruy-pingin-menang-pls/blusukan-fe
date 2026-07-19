@@ -6,11 +6,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function TopBar() {
   const router = useRouter();
-  const { mode, setMode, userName } = useAppStore();
+  const { mode, setMode, user } = useAppStore();
   const insets = useSafeAreaInsets();
 
-  const initials = userName
-    ? userName.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()
+  const initials = user?.full_name
+    ? user.full_name.trim().split(/\s+/).slice(0, 2).map((w: string) => w[0]).join("").toUpperCase()
     : "?";
 
   function handleSwitch(target: "dolan" | "bakul") {

@@ -8,5 +8,5 @@ export default function Index() {
     return <Redirect href="/onboarding" />;
   }
 
-  return <Redirect href="/(dolan)/home" />;
+  return <Redirect href="/(auth)/select-mode" />;
 }
