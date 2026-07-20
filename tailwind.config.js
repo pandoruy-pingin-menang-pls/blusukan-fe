@@ -33,6 +33,7 @@ module.exports = {
         danger: "#B23B3B",
         "stamp-empty": "#C7CFDA",
         "btn-disabled": "#B9C2CE",
+        "primary-orange": "#E8751A",
       },
       fontFamily: {
         display: ["PlusJakartaSans_700Bold"],
@@ -43,6 +44,8 @@ module.exports = {
         "sans-medium": ["Inter_500Medium"],
         "sans-semibold": ["Inter_600SemiBold"],
         "sans-bold": ["Inter_700Bold"],
+        playfair: ["PlayfairDisplay_700Bold"],
+        "grand-hotel": ["GrandHotel_400Regular"],
       },
       borderRadius: {
         card: "16px",
