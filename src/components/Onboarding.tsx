@@ -27,19 +27,19 @@ const DATA = [
     id: "1",
     title: "Ayo Dolan Bareng Blusukan!",
     desc: "Jelajahi tempat-tempat seru dan temukan hidden gems di sekitarmu.",
-    image: require("../../assets/mblus/Adventure.png"),
+    image: require("../../assets/mblus/adventure.png"),
   },
   {
     id: "2",
     title: "Yuk, Bikin Jualanmu Makin Dikenal!",
     desc: "Tawarkan jualanmu dan jangkau lebih banyak pelanggan dengan mudah.",
-    image: require("../../assets/mblus/SnackRun.png"),
+    image: require("../../assets/mblus/snack-run.png"),
   },
   {
     id: "3",
     title: "Siap Berpetualang?",
     desc: "Pilih mode yang paling cocok hari ini. Jangan khawatir, bisa ganti kapan aja kok. Ayo mulai!",
-    image: require("../../assets/mblus/FollowMe.png"),
+    image: require("../../assets/mblus/follow-me.png"),
   },
 ];
 
