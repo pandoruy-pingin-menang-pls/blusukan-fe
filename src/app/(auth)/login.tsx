@@ -22,6 +22,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  interpolate,
+  Extrapolation,
 } from "react-native-reanimated";
 import {
   Gesture,
@@ -30,11 +32,10 @@ import {
 } from "react-native-gesture-handler";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const MIN_SHEET_Y = SCREEN_HEIGHT * 0.15;
+const MIN_SHEET_Y = SCREEN_HEIGHT * 0.20;
 const DEFAULT_SHEET_Y = SCREEN_HEIGHT * 0.25;
-const MAX_SHEET_Y = SCREEN_HEIGHT * 0.65;
+const MAX_SHEET_Y = SCREEN_HEIGHT * 0.35;
 
-// ─── Icon Input with password toggle support ────────────────────────────────
 const IconInput = ({
   icon,
   isPassword,
@@ -128,26 +129,24 @@ export default function LoginScreen() {
     }
   };
 
-  // ── Bottom Sheet animation ─────────────────────────────────────────────
   const translateY = useSharedValue(DEFAULT_SHEET_Y);
   const context = useSharedValue({ y: 0 });
 
-  // Only attach gesture to the drag handle zone
   const dragGesture = Gesture.Pan()
     .onStart(() => {
       context.value = { y: translateY.value };
     })
     .onUpdate((event) => {
       const newY = event.translationY + context.value.y;
-      translateY.value = Math.max(newY, MIN_SHEET_Y);
+      translateY.value = Math.min(Math.max(newY, MIN_SHEET_Y), MAX_SHEET_Y);
     })
     .onEnd(() => {
-      if (translateY.value < DEFAULT_SHEET_Y - 50) {
+      if (translateY.value < DEFAULT_SHEET_Y - 20) {
         translateY.value = withSpring(MIN_SHEET_Y, {
           damping: 20,
           stiffness: 100,
         });
-      } else if (translateY.value > DEFAULT_SHEET_Y + 50) {
+      } else if (translateY.value > DEFAULT_SHEET_Y + 20) {
         translateY.value = withSpring(MAX_SHEET_Y, {
           damping: 20,
           stiffness: 100,
@@ -164,17 +163,52 @@ export default function LoginScreen() {
     transform: [{ translateY: translateY.value }],
   }));
 
+  const foodAnimatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(
+      translateY.value,
+      [MIN_SHEET_Y, MAX_SHEET_Y],
+      [1.02, 1.15],
+      Extrapolation.CLAMP
+    );
+    const bgTranslateY = interpolate(
+      translateY.value,
+      [MIN_SHEET_Y, MAX_SHEET_Y],
+      [-150, -30],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [{ scale }, { translateY: bgTranslateY }],
+    };
+  });
+
+  const tableAnimatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(
+      translateY.value,
+      [MIN_SHEET_Y, MAX_SHEET_Y],
+      [1.40, 1.55],
+      Extrapolation.CLAMP
+    );
+    const bgTranslateY = interpolate(
+      translateY.value,
+      [MIN_SHEET_Y, MAX_SHEET_Y],
+      [-130, -30],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [{ scale }, { translateY: bgTranslateY }, { translateX: 50 }],
+    };
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        {/* ── Background: gradient + batik overlay ── */}
         <ImageBackground
           source={require("../../../assets/batik-solo-overlay.png")}
           style={{ flex: 1 }}
-          imageStyle={{ opacity: 0.25 }}
+          imageStyle={{ opacity: 0.45 }}
           resizeMode="repeat"
         >
           <LinearGradient
@@ -184,14 +218,37 @@ export default function LoginScreen() {
             style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
           />
 
-          {/* ── Logo ── */}
-          <View className="absolute top-24 left-0 right-0 items-center">
-            <Text className="font-grand-hotel text-5xl text-navy-900">
-              Blusukan
-            </Text>
-          </View>
+          <Animated.Image
+            source={require("../../../assets/login-overlay-table.png")}
+            style={[
+              {
+                position: "absolute",
+                top: "20%",
+                left: 0,
+                right: 0,
+                width: "100%",
+                height: SCREEN_HEIGHT * 0.25,
+                resizeMode: "cover",
+              },
+              tableAnimatedStyle,
+            ]}
+          />
+          <Animated.Image
+            source={require("../../../assets/login-overlay-food.png")}
+            style={[
+              {
+                position: "absolute",
+                top: "15%",
+                left: 0,
+                right: 0,
+                width: "100%",
+                height: SCREEN_HEIGHT * 0.25,
+                resizeMode: "cover",
+              },
+              foodAnimatedStyle,
+            ]}
+          />
 
-          {/* ── Animated Bottom Sheet ── */}
           <Animated.View
             className="absolute left-0 right-0 bottom-0 bg-white"
             style={[
@@ -203,28 +260,25 @@ export default function LoginScreen() {
               bottomSheetStyle,
             ]}
           >
-            {/* Mascot – outside gesture so it renders above */}
             <Image
-              source={require("../../../assets/mblus/Hanging.png")}
+              source={require("../../../assets/mblus/hanging-happy.png")}
               style={{
                 width: 100,
                 height: 100,
                 position: "absolute",
-                top: -90,
+                top: -88,
                 right: 40,
                 zIndex: 10,
               }}
               resizeMode="contain"
             />
 
-            {/* ── Drag Handle (only this zone handles Pan gesture) ── */}
             <GestureDetector gesture={dragGesture}>
               <View style={{ paddingBottom: 8, paddingTop: 12 }}>
                 <View className="w-12 h-1.5 bg-gray-300 rounded-full self-center" />
               </View>
             </GestureDetector>
 
-            {/* ── Form Content ── */}
             <ScrollView
               contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
               showsVerticalScrollIndicator={false}
