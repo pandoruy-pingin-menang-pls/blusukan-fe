@@ -173,7 +173,7 @@ export default function LoginScreen() {
     const bgTranslateY = interpolate(
       translateY.value,
       [MIN_SHEET_Y, MAX_SHEET_Y],
-      [-150, -30],
+      [-140, -30],
       Extrapolation.CLAMP
     );
     return {
