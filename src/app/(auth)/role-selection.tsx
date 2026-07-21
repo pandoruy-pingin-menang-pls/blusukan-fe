@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, Text, Alert as RNAlert, Image, Pressable, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, Image, Pressable, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useAppStore } from "../../store/useAppStore";
 import { Alert } from "../../components/ui/Alert";
+import { ConfirmationModal } from "../../components/ui/ConfirmationModal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
@@ -39,36 +40,34 @@ export default function RoleSelectionScreen() {
   const params = useLocalSearchParams<{ email?: string; fullName?: string; password?: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState("");
+  const [isWisatawanModalVisible, setIsWisatawanModalVisible] = useState(false);
   const { register, isLoggedIn } = useAppStore(state => state);
 
+  const confirmWisatawan = async () => {
+    setIsWisatawanModalVisible(false);
+    
+    // Give animation time to finish before heavy operations
+    setTimeout(async () => {
+      if (isLoggedIn) {
+        router.replace("/(dolan)/home");
+        return;
+      }
+      if (!params.email || !params.fullName || !params.password) return;
+      setIsLoading(true);
+      setGlobalError("");
+      try {
+        await register(params.email, params.fullName, params.password);
+        router.replace("/(dolan)/home");
+      } catch (error: any) {
+        setGlobalError(error.response?.data?.detail?.[0]?.msg || "Gagal mendaftar. Silakan coba lagi.");
+      } finally {
+        setIsLoading(false);
+      }
+    }, 250);
+  };
+
   const handleWisatawan = () => {
-    RNAlert.alert(
-      "Konfirmasi",
-      "Yakin daftar sebagai Wisatawan?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Ya",
-          onPress: async () => {
-            if (isLoggedIn) {
-              router.replace("/(dolan)/home");
-              return;
-            }
-            if (!params.email || !params.fullName || !params.password) return;
-            setIsLoading(true);
-            setGlobalError("");
-            try {
-              await register(params.email, params.fullName, params.password);
-              router.replace("/(dolan)/home");
-            } catch (error: any) {
-              setGlobalError(error.response?.data?.detail?.[0]?.msg || "Gagal mendaftar. Silakan coba lagi.");
-            } finally {
-              setIsLoading(false);
-            }
-          }
-        }
-      ]
-    );
+    setIsWisatawanModalVisible(true);
   };
 
   const handlePedagang = async () => {
@@ -126,7 +125,7 @@ export default function RoleSelectionScreen() {
         </TouchableOpacity>
 
         <View className="items-center mb-10 mt-25">
-          <Text className="text-[32px] font-playfair text-[#22548C] mb-2 text-center">
+          <Text className="text-[32px] font-playfair text-navy-900 mb-2 text-center">
             Pilih Peranmu
           </Text>
           <Text className="text-base font-sans text-ink-soft text-center">
@@ -159,7 +158,7 @@ export default function RoleSelectionScreen() {
                 style={{ width: 120, height: 120, marginBottom: 16 }}
                 resizeMode="contain"
               />
-              <Text className="text-2xl font-playfair text-[#22548C] mb-2 text-center">
+              <Text className="text-2xl font-playfair text-navy-900 mb-2 text-center">
                 Wisatawan
               </Text>
               <Text className="text-sm font-sans text-ink-dark text-center leading-relaxed">
@@ -190,7 +189,7 @@ export default function RoleSelectionScreen() {
                 style={{ width: 120, height: 120, marginBottom: 16 }}
                 resizeMode="contain"
               />
-              <Text className="text-2xl font-playfair text-[#E8751A] mb-2 text-center">
+              <Text className="text-2xl font-playfair text-[#BA5E12] mb-2 text-center">
                 Pedagang
               </Text>
               <Text className="text-sm font-sans text-ink-dark text-center leading-relaxed">
@@ -200,6 +199,13 @@ export default function RoleSelectionScreen() {
           </AnimatedCard>
         </View>
       </View>
+
+      <ConfirmationModal 
+        visible={isWisatawanModalVisible}
+        roleName="Wisatawan"
+        onClose={() => setIsWisatawanModalVisible(false)}
+        onConfirm={confirmWisatawan}
+      />
     </ImageBackground>
   );
 }
