@@ -205,6 +205,11 @@ export default function RoleSelectionScreen() {
         roleName="Wisatawan"
         onClose={() => setIsWisatawanModalVisible(false)}
         onConfirm={confirmWisatawan}
+        message={
+          <Text>
+            Yakin daftar sebagai <Text style={{ fontWeight: "700" }}>Wisatawan</Text>?
+          </Text>
+        }
       />
     </ImageBackground>
   );

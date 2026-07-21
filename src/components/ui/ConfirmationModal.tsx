@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Pressable } from "react-native";
+import { View, Text, Modal, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,12 +11,30 @@ import Animated, {
 
 type ConfirmationModalProps = {
   visible: boolean;
-  roleName: string;
   onClose: () => void;
   onConfirm: () => void;
+  // Dipakai untuk pesan default "Yakin daftar sebagai {roleName}?" (dipakai di role-selection)
+  roleName?: string;
+  // Kalau diisi, override pesan default di atas (bisa string atau JSX, misal untuk bold nama toko)
+  message?: React.ReactNode;
+  title?: string;
+  confirmText?: string;
+  cancelText?: string;
+  // Warna tombol konfirmasi, default navy (#0F172A) kalau tidak diisi
+  confirmColor?: string;
 };
 
-export function ConfirmationModal({ visible, roleName, onClose, onConfirm }: ConfirmationModalProps) {
+export function ConfirmationModal({
+  visible,
+  roleName,
+  onClose,
+  onConfirm,
+  message,
+  title = "Konfirmasi",
+  confirmText = "Ya, Lanjutkan!",
+  cancelText = "Batal",
+  confirmColor = "#0F172A",
+}: ConfirmationModalProps) {
   const [showModal, setShowModal] = useState(visible);
   const animation = useSharedValue(0);
 
@@ -52,11 +70,11 @@ export function ConfirmationModal({ visible, roleName, onClose, onConfirm }: Con
   return (
     <Modal transparent visible={showModal} animationType="none" onRequestClose={onClose}>
       <View className="flex-1 justify-center items-center">
-        <Animated.View 
-          style={[StyleSheet.absoluteFill, { backgroundColor: 'black' }, backdropStyle]} 
+        <Animated.View
+          style={[StyleSheet.absoluteFill, { backgroundColor: "black" }, backdropStyle]}
         />
-        
-        <Animated.View 
+
+        <Animated.View
           style={[
             {
               backgroundColor: "#FFFFFF",
@@ -70,32 +88,39 @@ export function ConfirmationModal({ visible, roleName, onClose, onConfirm }: Con
               shadowRadius: 20,
               elevation: 10,
             },
-            animatedStyle
+            animatedStyle,
           ]}
         >
           <Text className="font-playfair text-[28px] font-medium tracking-wider text-navy-900 mb-2 mt-2 text-center">
-            Konfirmasi
+            {title}
           </Text>
-          
+
           <Text className="font-sans text-[15px] text-[#475569] text-center mb-6">
-            Yakin daftar sebagai {roleName}?
+            {message ?? `Yakin daftar sebagai ${roleName}?`}
           </Text>
-          
+
           <View className="flex-row w-full gap-3">
-            <TouchableOpacity 
+            <TouchableOpacity
               className="flex-1 rounded-xl py-3 border-[1.5px] border-[#94A3B8] items-center justify-center bg-transparent"
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Text className="font-sans-bold text-[#334155]">Batal</Text>
+              <Text className="font-sans-bold text-[#334155]">{cancelText}</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              className="flex-1 rounded-xl py-3 items-center justify-center bg-navy-900"
+
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                borderRadius: 12,
+                paddingVertical: 12,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: confirmColor,
+              }}
               onPress={onConfirm}
               activeOpacity={0.8}
             >
-              <Text className="font-sans-bold text-white">Ya, Lanjutkan!</Text>
+              <Text className="font-sans-bold text-white">{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
