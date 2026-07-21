@@ -9,7 +9,7 @@ export default function Index() {
   }
 
   if (user?.role === "pedagang") {
-    return <Redirect href="/(merchant)/home" />;
+    return <Redirect href="/(bakul)/home" />;
   }
 
   return <Redirect href="/(dolan)/home" />;

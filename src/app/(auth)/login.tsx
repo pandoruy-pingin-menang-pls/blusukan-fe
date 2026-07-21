@@ -103,7 +103,7 @@ export default function LoginScreen() {
       await login(email, password);
       const currentUser = useAppStore.getState().user;
       if (currentUser?.role === "pedagang") {
-        router.replace("/(merchant)/home");
+        router.replace("/(bakul)/home");
       } else {
         router.replace("/(dolan)/home");
       }

@@ -104,8 +104,7 @@ export default function RegisterMerchantScreen() {
         latitude: -7.250445, // Dummy default
         longitude: 112.768845,
       });
-      setShowModal(false);
-      router.replace("/(merchant)/home");
+      router.replace("/(bakul)/home");
     } catch (error: any) {
       setShowModal(false);
       if (error.response?.status === 422) {
