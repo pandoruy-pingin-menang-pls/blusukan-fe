@@ -188,7 +188,7 @@ export default function RegisterScreen() {
           />
 
           <Animated.Image
-            source={require("../../../assets/register-overlay.png")}
+            source={require("../../../assets/register-house.png")}
             style={[
               {
                 position: "absolute",

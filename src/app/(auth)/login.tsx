@@ -219,7 +219,7 @@ export default function LoginScreen() {
           />
 
           <Animated.Image
-            source={require("../../../assets/login-overlay-table.png")}
+            source={require("../../../assets/login-table.png")}
             style={[
               {
                 position: "absolute",
@@ -234,7 +234,7 @@ export default function LoginScreen() {
             ]}
           />
           <Animated.Image
-            source={require("../../../assets/login-overlay-food.png")}
+            source={require("../../../assets/login-food.png")}
             style={[
               {
                 position: "absolute",
