@@ -47,8 +47,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, isLoadingAuth]);
 
-  if (!fontsLoaded || isLoadingAuth) return null;
-
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />

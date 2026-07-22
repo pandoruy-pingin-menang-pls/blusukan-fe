@@ -10,6 +10,7 @@ const DOLAN_ITEMS: NavItem[] = [
   { href: "/(dolan)/itinerary", icon: "map", label: "Rute" },
   { href: "/(dolan)/payment", icon: "qrcode", label: "Bayar" },
   { href: "/(dolan)/stamps", icon: "stamp", label: "Stempel" },
+  { href: "/(dolan)/profile", icon: "user", label: "Profil" },
 ];
 
 const BAKUL_ITEMS: NavItem[] = [
