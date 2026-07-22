@@ -83,10 +83,10 @@ export default function BakulCatalogScreen() {
       />
 
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 40 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-row items-center justify-between mt-4 mb-2">
+        <View className="flex-row items-center justify-between mb-2">
           <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900">
             Katalog Toko
           </Text>
@@ -95,16 +95,29 @@ export default function BakulCatalogScreen() {
           Daftar menu yang tersedia untuk pelanggan.
         </Text>
         
-        <TouchableOpacity 
-          className="w-full bg-navy-900 rounded-2xl py-4 items-center justify-center flex-row gap-2 mb-8 shadow-sm"
-          onPress={() => router.push("/(bakul)/catalog/ingest")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="camera" size={20} color="white" />
-          <Text className="font-sans-bold text-white text-[16px]">
-            Tambah Menu via Foto (AI)
-          </Text>
-        </TouchableOpacity>
+        <View className="gap-3 mb-8 w-full">
+          <TouchableOpacity 
+            className="w-full bg-navy-900 rounded-2xl py-4 items-center justify-center flex-row gap-2 shadow-sm"
+            onPress={() => router.push("/(bakul)/catalog/ingest")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="camera" size={20} color="white" />
+            <Text className="font-sans-bold text-white text-[16px]">
+              Tambah Menu via Foto (AI)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            className="w-full bg-white/80 border border-slate-200 rounded-2xl py-4 items-center justify-center flex-row gap-2 shadow-sm"
+            onPress={() => router.push("/(bakul)/catalog/ingest?mode=manual")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={20} color="#475569" />
+            <Text className="font-sans-bold text-slate-600 text-[16px]">
+              Tambah Menu Manual
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Alert message={error} type="error" />
 

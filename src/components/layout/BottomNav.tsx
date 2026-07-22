@@ -16,7 +16,6 @@ const DOLAN_ITEMS: NavItem[] = [
 
 const BAKUL_ITEMS: NavItem[] = [
   { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Beranda" },
-  { href: "/(bakul)/stock", icon: "boxes-stacked", label: "Prediksi" },
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
   { href: "/(bakul)/catalog", icon: "book-open", label: "Katalog" },
   { href: "/(bakul)/my-store", icon: "store", label: "Toko" },
