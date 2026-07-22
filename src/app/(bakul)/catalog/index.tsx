@@ -83,10 +83,10 @@ export default function BakulCatalogScreen() {
       />
 
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 40 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-row items-center justify-between mt-4 mb-2">
+        <View className="flex-row items-center justify-between mb-2">
           <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900">
             Katalog Toko
           </Text>
