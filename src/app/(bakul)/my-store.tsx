@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  Switch
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -57,12 +58,25 @@ export default function MyStoreScreen() {
   const [promoStatus, setPromoStatus] = useState<"idle"|"success"|"error">("idle");
   const [promosList, setPromosList] = useState<any[]>([]);
 
+  // Baseline state
+  type BaselineItem = { key: string; value: string };
+  const [baselineItems, setBaselineItems] = useState<BaselineItem[]>([]);
+  const [isBaselineLoading, setIsBaselineLoading] = useState(false);
+  const [baselineMessage, setBaselineMessage] = useState("");
+  const [baselineStatus, setBaselineStatus] = useState<"idle"|"success"|"error">("idle");
+
   const fetchStoreProfile = async () => {
     setIsLoading(true);
     setError("");
     try {
       const { data } = await apiClient.get("/api/merchants/me");
       setStore(data);
+      if (data.baseline_inventory) {
+        const parsed = Object.entries(data.baseline_inventory).map(([k, v]) => ({ key: k, value: String(v) }));
+        setBaselineItems(parsed);
+      } else {
+        setBaselineItems([]);
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || "Gagal memuat profil toko");
     } finally {
@@ -139,11 +153,32 @@ export default function MyStoreScreen() {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    const d = new Date(dateString);
+    return d.toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const handleSaveBaseline = async () => {
+    setIsBaselineLoading(true);
+    setBaselineStatus("idle");
+    setBaselineMessage("");
+    try {
+      const payload: Record<string, number> = {};
+      baselineItems.forEach(item => {
+        if (item.key && item.value) {
+          payload[item.key] = parseInt(item.value, 10);
+        }
+      });
+      await apiClient.patch(`/api/inventory/${merchant_id}/baseline-inventory`, {
+        baseline_inventory: payload
+      });
+      setBaselineStatus("success");
+      setBaselineMessage("Baseline stok harian berhasil disimpan!");
+    } catch (err: any) {
+      setBaselineStatus("error");
+      setBaselineMessage(err.response?.data?.detail || "Gagal menyimpan baseline.");
+    } finally {
+      setIsBaselineLoading(false);
+    }
   };
 
   return (
@@ -243,11 +278,144 @@ export default function MyStoreScreen() {
                       </Text>
                     </View>
                   </View>
+
+                  <View className="mt-1 border-t border-slate-100 pt-3">
+                    <Text className="text-xs font-sans-semibold text-ink-faint mb-2">Redemption Partner</Text>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons 
+                          name={store.is_redemption_partner ? "game-controller" : "game-controller-outline"} 
+                          size={16} 
+                          color={store.is_redemption_partner ? "#ea580c" : "#94a3b8"} 
+                        />
+                        <Text className="text-sm font-sans text-navy-800">
+                          {store.is_redemption_partner ? "Aktif (Bisa Buat Promo)" : "Tidak Aktif"}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               </View>
 
-              {/* Gamification / Promo Card */}
+              {/* Baseline Inventory Card */}
               <View className="bg-white/95 rounded-3xl p-6 border border-slate-200 shadow-sm mb-6">
+                <View className="flex-row items-center gap-3 mb-4 border-b border-slate-100 pb-4">
+                  <View>
+                    <Ionicons name="analytics-outline" size={28} color="#22548C" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-sans-bold text-navy-900 text-lg">
+                      Target Stok Harian (Baseline)
+                    </Text>
+                    <Text className="font-sans text-slate-500 text-xs mt-0.5">
+                      Pilih kategori dan tentukan target stok untuk diprediksi AI.
+                    </Text>
+                  </View>
+                </View>
+
+                {baselineItems.length === 0 && (
+                  <Text className="font-sans text-slate-500 text-sm text-center py-2 mb-4">
+                    Belum ada target stok. Silakan tambah kategori di bawah.
+                  </Text>
+                )}
+
+                {baselineItems.map((item, index) => (
+                  <View key={index} className="flex-row items-center justify-between mb-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                    <Text className="font-sans-bold text-navy-900 flex-1">
+                      {CATEGORY_MAP[item.key] || item.key}
+                    </Text>
+                    <View className="flex-row items-center gap-2">
+                      <Text className="font-sans text-slate-500 text-xs">Target:</Text>
+                      <TextInput
+                        className="w-20 border-[1.5px] border-slate-300 rounded-xl px-2 py-1.5 font-sans-bold text-[14px] text-navy-900 bg-white text-center"
+                        placeholder="0"
+                        keyboardType="numeric"
+                        value={item.value}
+                        onChangeText={(val) => {
+                          const newItems = [...baselineItems];
+                          newItems[index].value = val.replace(/[^0-9]/g, "");
+                          setBaselineItems(newItems);
+                        }}
+                      />
+                      <TouchableOpacity 
+                        onPress={() => {
+                          const newItems = baselineItems.filter((_, i) => i !== index);
+                          setBaselineItems(newItems);
+                        }}
+                        className="justify-center px-1"
+                      >
+                        <Ionicons name="close-circle" size={24} color="#ef4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+
+                {/* Available Categories Chips */}
+                {(() => {
+                  const availableCats = Object.keys(CATEGORY_MAP).filter(
+                    cat => !baselineItems.some(i => i.key === cat)
+                  );
+                  if (availableCats.length > 0) {
+                    return (
+                      <View className="mt-2 mb-4">
+                        <Text className="font-sans-semibold text-slate-500 text-xs mb-2">Pilih kategori untuk ditambahkan:</Text>
+                        <View className="flex-row flex-wrap gap-2">
+                          {availableCats.map(cat => (
+                            <TouchableOpacity
+                              key={cat}
+                              onPress={() => setBaselineItems([...baselineItems, { key: cat, value: "" }])}
+                              className="bg-navy-50 border border-navy-200 px-3 py-1.5 rounded-full flex-row items-center gap-1"
+                            >
+                              <Ionicons name="add" size={16} color="#22548C" />
+                              <Text className="font-sans-bold text-navy-700 text-xs">{CATEGORY_MAP[cat]}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    );
+                  }
+                  return null;
+                })()}
+
+                {baselineStatus === "success" && (
+                  <View className="bg-navy-50 border border-navy-200 p-3 rounded-xl mb-4 flex-row items-start gap-2">
+                    <Ionicons name="checkmark-circle" size={20} color="#22548C" />
+                    <Text className="font-sans-semibold text-navy-700 flex-1 text-sm leading-relaxed">
+                      {baselineMessage}
+                    </Text>
+                  </View>
+                )}
+                {baselineStatus === "error" && (
+                  <View className="bg-red-50 border border-red-200 p-3 rounded-xl mb-4 flex-row items-start gap-2">
+                    <Ionicons name="warning" size={20} color="#dc2626" />
+                    <Text className="font-sans-semibold text-red-700 flex-1 text-sm leading-relaxed">
+                      {baselineMessage}
+                    </Text>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  onPress={handleSaveBaseline}
+                  disabled={isBaselineLoading}
+                  activeOpacity={0.8}
+                  style={{ backgroundColor: isBaselineLoading ? '#cbd5e1' : '#14335A' }}
+                  className="rounded-2xl py-3.5 mt-2 items-center justify-center flex-row gap-2"
+                >
+                  {isBaselineLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <>
+                      <Ionicons name="save-outline" size={20} color="white" />
+                      <Text className="font-sans-bold text-white text-[15px]">Simpan Baseline</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Gamification / Promo Card */}
+              {store.is_redemption_partner ? (
+                <>
+                  <View className="bg-white/95 rounded-3xl p-6 border border-slate-200 shadow-sm mb-6">
                 <View className="flex-row items-center gap-3 mb-4 border-b border-slate-100 pb-4">
                   <View>
                     <Ionicons name="gift-outline" size={28} color="#ea580c" />
@@ -420,7 +588,21 @@ export default function MyStoreScreen() {
                     </View>
                   ))
                 )}
-              </View>
+                  </View>
+                </>
+              ) : (
+                <View className="bg-white/95 rounded-3xl p-6 border border-slate-200 shadow-sm mb-6 items-center">
+                  <View className="mb-4">
+                    <Ionicons name="lock-closed-outline" size={48} color="#94a3b8" />
+                  </View>
+                  <Text className="font-sans-bold text-navy-900 text-lg text-center mb-2">
+                    Fitur Gamifikasi Terkunci
+                  </Text>
+                  <Text className="font-sans text-slate-500 text-center leading-relaxed">
+                    Anda belum terdaftar sebagai Redemption Partner. Hubungi Admin Blusukan untuk mengaktifkan fitur pembuatan dan penukaran promo bagi turis.
+                  </Text>
+                </View>
+              )}
 
             </>
           )}
