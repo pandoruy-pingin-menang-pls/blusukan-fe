@@ -70,7 +70,7 @@ export default function ReviewEventScreen() {
   if (!event) return null;
 
   return (
-    <ScrollView className="flex-1 bg-surface p-4">
+    <ScrollView className="flex-1 bg-transparent p-4">
       <Pressable onPress={() => router.back()} className="flex-row items-center mb-6">
         <FontAwesome6 name="chevron-left" size={16} color="#0F2A4A" />
         <Text className="text-navy-900 font-sans-semibold ml-2">Kembali</Text>
@@ -113,24 +113,23 @@ export default function ReviewEventScreen() {
         </View>
       </View>
 
-      <View className="flex-row gap-3 mt-4 mb-8">
-        <Pressable 
+      <View className="flex-row gap-4 mt-2 mb-8">
+        <Pressable
+          className="flex-1 bg-white border border-primary-orange rounded-btn py-3.5 items-center"
           onPress={() => handleReview('reject')}
           disabled={submitting}
-          className="flex-1 bg-red-100 py-3 rounded-btn items-center border border-danger/20"
         >
-          <Text className="text-danger font-sans-bold text-base">Reject</Text>
+          <Text className="text-primary-orange font-sans-semibold text-base">Tolak Event</Text>
         </Pressable>
-        
-        <Pressable 
+        <Pressable
+          className="flex-1 bg-navy-900 rounded-btn py-3.5 items-center"
           onPress={() => handleReview('approve')}
           disabled={submitting}
-          className="flex-1 bg-good py-3 rounded-btn items-center"
         >
           {submitting ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-sans-bold text-base">Approve</Text>
+            <Text className="text-white font-sans-semibold text-base">Setujui Event</Text>
           )}
         </Pressable>
       </View>

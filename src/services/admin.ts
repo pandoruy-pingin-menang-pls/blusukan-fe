@@ -4,6 +4,8 @@ export interface EventPayload {
   name: string;
   genre: string;
   venue_name: string;
+  latitude?: number;
+  longitude?: number;
   estimated_attendee_count: number;
   start_datetime: string;
   end_datetime: string;

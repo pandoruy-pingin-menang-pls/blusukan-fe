@@ -44,7 +44,7 @@ export default function AdminEventsScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-surface">
+    <View className="flex-1 bg-transparent">
       <View className="bg-white px-4 pt-4 pb-2 shadow-sm z-10">
         <View className="flex-row justify-between items-center mb-4">
           <Text className="text-navy-900 font-display-semibold text-xl">Daftar Event</Text>
