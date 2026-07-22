@@ -42,7 +42,7 @@ export default function AdminDashboardScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/(auth)/login");
+    // Layout akan otomatis mendeteksi state user = null dan melakukan redirect
   };
 
   const handleRecalculate = () => {

@@ -8,7 +8,7 @@ export default function AdminLayout() {
   const user = useAppStore((state) => state.user);
 
   if (user?.role !== "admin") {
-    return <Redirect href="/" />;
+    return <Redirect href="/(auth)/login" />;
   }
 
   return (
