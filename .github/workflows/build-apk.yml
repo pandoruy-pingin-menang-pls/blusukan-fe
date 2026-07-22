@@ -1,0 +1,72 @@
+name: Build Android APK (EAS Local)
+
+on:
+  workflow_dispatch: # Memungkinkan Anda men-trigger build secara manual dari tab Actions
+  push:
+    branches:
+      - main # Akan jalan otomatis setiap ada perubahan di branch main
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Expo & EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build APK (EAS Local)
+        run: eas build --platform android --profile preview --local --non-interactive --output blusukan.apk
+
+      - name: Ambil versi dari app.json
+        id: get_version
+        run: |
+          VERSION=$(node -e "console.log(require('./app.json').expo.version)")
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "apk_name=blusukan-v$VERSION.apk" >> $GITHUB_OUTPUT
+
+      - name: Rename APK dengan versi
+        run: mv blusukan.apk ${{ steps.get_version.outputs.apk_name }}
+
+      - name: Upload APK ke GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: Blusukan
+          path: ${{ steps.get_version.outputs.apk_name }}
+          retention-days: 7
+
+      - name: Tampilkan di Halaman Release Utama
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ steps.get_version.outputs.apk_name }}
+          tag: ${{ steps.get_version.outputs.version }}
+          name: "Blusukan ${{ steps.get_version.outputs.version }}"
+          body: |
+            ## 📱 Blusukan ${{ steps.get_version.outputs.version }}
+
+            Silakan download file **.apk** di bawah ini untuk menginstall aplikasi Blusukan di HP Android Anda.
+          allowUpdates: true
