@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   View, 
   Text, 
@@ -28,6 +28,19 @@ export default function PosScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [isRedemptionPartner, setIsRedemptionPartner] = useState(false);
+
+  useEffect(() => {
+    const fetchMerchant = async () => {
+      try {
+        const res = await apiClient.get("/api/merchants/me");
+        setIsRedemptionPartner(res.data.is_redemption_partner);
+      } catch (e) {
+        console.error("Failed to fetch merchant info:", e);
+      }
+    };
+    fetchMerchant();
+  }, []);
 
   const resetState = () => {
     setStatus("idle");
@@ -131,24 +144,26 @@ export default function PosScreen() {
         </View>
 
         {/* Custom Tabs */}
-        <View className="flex-row bg-slate-200/50 p-1.5 rounded-2xl mb-6">
-          <TouchableOpacity 
-            style={{ flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === "transaksi" ? 'white' : 'transparent', elevation: mode === "transaksi" ? 1 : 0 }}
-            onPress={() => { setMode("transaksi"); resetState(); }}
-          >
-            <Text className={`font-sans-bold ${mode === "transaksi" ? "text-navy-900" : "text-slate-500"}`}>
-              Transaksi Baru
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={{ flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === "promo" ? 'white' : 'transparent', elevation: mode === "promo" ? 1 : 0 }}
-            onPress={() => { setMode("promo"); resetState(); }}
-          >
-            <Text className={`font-sans-bold ${mode === "promo" ? "text-navy-900" : "text-slate-500"}`}>
-              Validasi Promo
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {isRedemptionPartner && (
+          <View className="flex-row bg-slate-200/50 p-1.5 rounded-2xl mb-6">
+            <TouchableOpacity 
+              style={{ flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === "transaksi" ? 'white' : 'transparent', elevation: mode === "transaksi" ? 1 : 0 }}
+              onPress={() => { setMode("transaksi"); resetState(); }}
+            >
+              <Text className={`font-sans-bold ${mode === "transaksi" ? "text-navy-900" : "text-slate-500"}`}>
+                Transaksi Baru
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={{ flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: mode === "promo" ? 'white' : 'transparent', elevation: mode === "promo" ? 1 : 0 }}
+              onPress={() => { setMode("promo"); resetState(); }}
+            >
+              <Text className={`font-sans-bold ${mode === "promo" ? "text-navy-900" : "text-slate-500"}`}>
+                Validasi Promo
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {mode === "transaksi" ? (
           <View className="bg-white/95 rounded-3xl p-6 border border-slate-200 shadow-sm">
