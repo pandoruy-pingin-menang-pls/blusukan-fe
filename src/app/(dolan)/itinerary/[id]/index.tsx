@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import MapView, { Marker, Geojson, PROVIDER_DEFAULT } from "react-native-maps";
+import { WebView } from "react-native-webview";
 import { getToken } from "../../../../utils/secureStore";
 import { Alert } from "../../../../components/ui/Alert";
 
@@ -117,22 +117,75 @@ export default function ItineraryResultScreen() {
     );
   }
 
-  // Hitung region untuk peta agar mencakup semua waypoint
-  const lats = itinerary.waypoints.map(w => w.lat);
-  const lons = itinerary.waypoints.map(w => w.lon);
-  
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-  
-  // Padding sedikit agar titik tidak di ujung layar
-  const initialRegion = lats.length > 0 ? {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLon + maxLon) / 2,
-    latitudeDelta: Math.max(0.01, (maxLat - minLat) * 1.5),
-    longitudeDelta: Math.max(0.01, (maxLon - minLon) * 1.5),
-  } : undefined;
+  const getMapHtml = () => {
+    const waypointsStr = JSON.stringify(itinerary.waypoints);
+    const geojsonStr = JSON.stringify(itinerary.route_geojson || null);
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <style>
+              body { padding: 0; margin: 0; }
+              html, body, #map { height: 100%; width: 100%; }
+              .custom-marker {
+                  background-color: #ea580c;
+                  color: white;
+                  border-radius: 50%;
+                  border: 2px solid white;
+                  text-align: center;
+                  font-weight: bold;
+                  line-height: 24px;
+                  font-size: 12px;
+                  font-family: sans-serif;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+              }
+          </style>
+      </head>
+      <body>
+          <div id="map"></div>
+          <script>
+              var map = L.map('map', { zoomControl: false }).setView([-7.5666, 110.8166], 13);
+              L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                  maxZoom: 19,
+              }).addTo(map);
+
+              var waypoints = ${waypointsStr};
+              var geojson = ${geojsonStr};
+
+              if (geojson) {
+                  L.geoJSON(geojson, {
+                      style: { color: '#22548C', weight: 4, opacity: 0.8 }
+                  }).addTo(map);
+              }
+
+              var bounds = L.latLngBounds();
+              waypoints.forEach(function(wp, i) {
+                  var latLng = [wp.lat, wp.lon];
+                  bounds.extend(latLng);
+
+                  var icon = L.divIcon({
+                      className: 'custom-marker',
+                      html: '<div>' + (i + 1) + '</div>',
+                      iconSize: [28, 28],
+                      iconAnchor: [14, 14]
+                  });
+
+                  L.marker(latLng, { icon: icon }).addTo(map)
+                      .bindPopup("<b>" + (i + 1) + ". " + wp.name + "</b><br>" + wp.category);
+              });
+
+              if (waypoints.length > 0) {
+                  map.fitBounds(bounds, { padding: [30, 30] });
+              }
+          </script>
+      </body>
+      </html>
+    `;
+  };
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -160,39 +213,12 @@ export default function ItineraryResultScreen() {
       >
         {/* Map View */}
         <View className="w-full h-[250px] bg-slate-200">
-          {initialRegion ? (
-            <MapView 
-              provider={PROVIDER_DEFAULT}
-              style={{ width: '100%', height: '100%' }}
-              initialRegion={initialRegion}
-            >
-              {itinerary.route_geojson && (
-                <Geojson 
-                  geojson={itinerary.route_geojson} 
-                  strokeColor="#22548C" 
-                  strokeWidth={4} 
-                />
-              )}
-              
-              {itinerary.waypoints.map((wp, index) => (
-                <Marker
-                  key={wp.merchant_id + index}
-                  coordinate={{ latitude: wp.lat, longitude: wp.lon }}
-                  title={`${index + 1}. ${wp.name}`}
-                  description={wp.category}
-                >
-                  <View className="bg-orange-600 w-8 h-8 rounded-full items-center justify-center border-2 border-white shadow-sm">
-                    <Text className="font-sans-bold text-white text-xs">{index + 1}</Text>
-                  </View>
-                </Marker>
-              ))}
-            </MapView>
-          ) : (
-            <View className="flex-1 items-center justify-center">
-              <Ionicons name="map-outline" size={48} color="#cbd5e1" />
-              <Text className="font-sans text-slate-400 mt-2">Peta tidak tersedia</Text>
-            </View>
-          )}
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: getMapHtml() }}
+            style={{ flex: 1 }}
+            scrollEnabled={false}
+          />
         </View>
 
         <View className="px-5 pt-6 pb-24">
