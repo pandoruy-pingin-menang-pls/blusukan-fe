@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   View, 
   Text, 
@@ -10,7 +10,7 @@ import {
   Image,
   TextInput
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -24,14 +24,34 @@ type DraftItem = {
   item_name: string;
   price: string;
   category: string;
+  source_type: "photo" | "manual";
 };
 
 export default function CatalogIngestScreen() {
   const merchant_id = useAppStore(state => state.merchant_id);
   
+  const params = useLocalSearchParams();
+  
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
+  const [isManualMode, setIsManualMode] = useState(false);
+  
+  // Initialize manual mode if navigated via ?mode=manual
+  React.useEffect(() => {
+    if (params.mode === "manual") {
+      setIsManualMode(true);
+      if (draftItems.length === 0) {
+        setDraftItems([{
+          id: `manual_${Date.now()}`,
+          item_name: "",
+          price: "0",
+          category: "culinary",
+          source_type: "manual"
+        }]);
+      }
+    }
+  }, [params.mode]);
   
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -111,7 +131,8 @@ export default function CatalogIngestScreen() {
         id: `draft_${index}_${Date.now()}`,
         item_name: item.item_name || "",
         price: item.price ? String(item.price) : "0",
-        category: item.category || "culinary"
+        category: item.category || "culinary",
+        source_type: "photo"
       }));
       
       setDraftItems(itemsWithId);
@@ -139,7 +160,8 @@ export default function CatalogIngestScreen() {
       id: `manual_${Date.now()}`,
       item_name: "",
       price: "0",
-      category: "culinary"
+      category: "culinary",
+      source_type: "manual"
     };
     setDraftItems(prev => [...prev, newItem]);
   };
@@ -170,7 +192,7 @@ export default function CatalogIngestScreen() {
           item_name: item.item_name,
           price: parseFloat(item.price) || 0,
           category: item.category,
-          source_type: "photo"
+          source_type: item.source_type
         }))
       };
 
@@ -247,7 +269,7 @@ export default function CatalogIngestScreen() {
         <Alert message={success} type="success" />
 
         {/* Tahap 1: Pilih / Upload Foto */}
-        {!photoUri && !isUploading && (
+        {!photoUri && !isUploading && !isManualMode && (
           <View className="gap-4 mb-8">
             <TouchableOpacity 
               className="bg-white/90 border-2 border-dashed border-navy-300 rounded-3xl p-10 items-center justify-center shadow-sm"
@@ -295,7 +317,7 @@ export default function CatalogIngestScreen() {
         </View>
 
         {/* Tahap 3: Review Draft */}
-        <View style={{ display: (!isUploading && !!photoUri) ? 'flex' : 'none', width: '100%' }}>
+        <View style={{ display: (!isUploading && (!!photoUri || isManualMode)) ? 'flex' : 'none', width: '100%' }}>
           <View className="flex-row items-center justify-between mb-4 mt-2">
             <Text className="font-sans-bold text-navy-900 text-lg">
               Hasil Ekstraksi ({draftItems.length})
@@ -377,16 +399,21 @@ export default function CatalogIngestScreen() {
             
             <TouchableOpacity 
               onPress={() => {
-                setPhotoUri(null);
-                setDraftItems([]);
-                setImageUrl(null);
+                if (params.mode === "manual") {
+                  router.back();
+                } else {
+                  setPhotoUri(null);
+                  setDraftItems([]);
+                  setImageUrl(null);
+                  setIsManualMode(false);
+                }
               }}
               disabled={isSaving}
               activeOpacity={0.8}
               className="bg-transparent border-[1.5px] border-slate-400 rounded-2xl py-4 items-center justify-center"
             >
               <Text className="font-sans-bold text-slate-600 text-[16px]">
-                Batal & Ulangi Foto
+                {params.mode === "manual" ? "Batal" : "Batal & Ulangi Foto"}
               </Text>
             </TouchableOpacity>
           </View>
