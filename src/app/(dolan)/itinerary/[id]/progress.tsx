@@ -12,7 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { getToken } from "../../../../utils/secureStore";
 import { Alert } from "../../../../components/ui/Alert";
-import MapView, { Marker, Geojson, PROVIDER_DEFAULT } from "react-native-maps";
+import { WebView } from "react-native-webview";
+import { useRef } from "react";
 
 type Waypoint = {
   merchant_id: string;
@@ -44,6 +45,7 @@ export default function ItineraryProgressScreen() {
   
   // Local state untuk tracking kunjungan
   const [currentIndex, setCurrentIndex] = useState(0);
+  const webviewRef = useRef<WebView>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -75,7 +77,15 @@ export default function ItineraryProgressScreen() {
   const handleNextWaypoint = () => {
     if (!itinerary) return;
     if (currentIndex < itinerary.waypoints.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      
+      const nextWp = itinerary.waypoints[nextIndex];
+      if (webviewRef.current && nextWp) {
+        // Pindahkan peta ke lokasi waypoint berikutnya
+        const js = `map.flyTo([${nextWp.lat}, ${nextWp.lon}], 16); true;`;
+        webviewRef.current.injectJavaScript(js);
+      }
     } else {
       // Selesai
       router.replace(`/(dolan)/itinerary`);
@@ -108,6 +118,101 @@ export default function ItineraryProgressScreen() {
   const currentWaypoint = itinerary.waypoints[currentIndex];
   const isFinished = currentIndex >= itinerary.waypoints.length;
 
+  const getMapHtml = () => {
+    const geojsonStr = JSON.stringify(itinerary.route_geojson || null);
+    
+    // Bikin marker statis (semua wp abu-abu kecil, wp saat ini oranye besar)
+    const waypointsStr = JSON.stringify(itinerary.waypoints);
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <style>
+              body { padding: 0; margin: 0; }
+              html, body, #map { height: 100%; width: 100%; }
+              .marker-active {
+                  background-color: #ea580c;
+                  color: white;
+                  border-radius: 50%;
+                  border: 3px solid white;
+                  text-align: center;
+                  font-weight: bold;
+                  line-height: 32px;
+                  font-size: 14px;
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+              }
+              .marker-inactive {
+                  background-color: #94a3b8;
+                  color: white;
+                  border-radius: 50%;
+                  border: 2px solid white;
+                  text-align: center;
+                  font-weight: bold;
+                  line-height: 20px;
+                  font-size: 10px;
+              }
+          </style>
+      </head>
+      <body>
+          <div id="map"></div>
+          <script>
+              var map = L.map('map', { zoomControl: false }).setView([${currentWaypoint.lat}, ${currentWaypoint.lon}], 16);
+              L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                  maxZoom: 19,
+              }).addTo(map);
+
+              var geojson = ${geojsonStr};
+              if (geojson) {
+                  L.geoJSON(geojson, {
+                      style: { color: '#22548C', weight: 4, opacity: 0.8 }
+                  }).addTo(map);
+              }
+
+              var waypoints = ${waypointsStr};
+              var markers = [];
+
+              function renderMarkers(activeIndex) {
+                  // Hapus marker lama
+                  markers.forEach(m => map.removeLayer(m));
+                  markers = [];
+
+                  waypoints.forEach(function(wp, i) {
+                      var isActive = (i === activeIndex);
+                      var className = isActive ? 'marker-active' : 'marker-inactive';
+                      var size = isActive ? 36 : 24;
+                      var anchor = size / 2;
+
+                      var icon = L.divIcon({
+                          className: className,
+                          html: '<div>' + (i + 1) + '</div>',
+                          iconSize: [size, size],
+                          iconAnchor: [anchor, anchor]
+                      });
+
+                      var marker = L.marker([wp.lat, wp.lon], { icon: icon }).addTo(map);
+                      if (isActive) {
+                          marker.bindPopup("<b>Tujuan Saat Ini</b><br>" + wp.name).openPopup();
+                      }
+                      markers.push(marker);
+                  });
+              }
+
+              renderMarkers(${currentIndex});
+              
+              // Expose function for injection
+              window.updateActiveMarker = function(newIndex) {
+                  renderMarkers(newIndex);
+              };
+          </script>
+      </body>
+      </html>
+    `;
+  };
+
   if (isFinished || !currentWaypoint) {
     return (
       <View className="flex-1 bg-slate-900 justify-center items-center p-6">
@@ -130,41 +235,14 @@ export default function ItineraryProgressScreen() {
     <View className="flex-1 bg-slate-900">
       {/* Peta Background */}
       <View className="absolute top-0 left-0 right-0 bottom-[240px]">
-        <MapView 
-          provider={PROVIDER_DEFAULT}
-          style={{ width: '100%', height: '100%' }}
-          initialRegion={{
-            latitude: currentWaypoint.lat,
-            longitude: currentWaypoint.lon,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          }}
-          region={{
-            latitude: currentWaypoint.lat,
-            longitude: currentWaypoint.lon,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          }}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-        >
-          {itinerary.route_geojson && (
-            <Geojson 
-              geojson={itinerary.route_geojson} 
-              strokeColor="#22548C" 
-              strokeWidth={5} 
-            />
-          )}
-          
-          <Marker
-            coordinate={{ latitude: currentWaypoint.lat, longitude: currentWaypoint.lon }}
-            title={`Tujuan: ${currentWaypoint.name}`}
-          >
-            <View className="bg-orange-600 p-2 rounded-full border-2 border-white shadow-md">
-              <Ionicons name="location" size={24} color="white" />
-            </View>
-          </Marker>
-        </MapView>
+        <WebView
+          ref={webviewRef}
+          originWhitelist={['*']}
+          source={{ html: getMapHtml() }}
+          style={{ flex: 1 }}
+          scrollEnabled={false}
+          injectedJavaScript={`if(window.updateActiveMarker) { window.updateActiveMarker(${currentIndex}); }; true;`}
+        />
       </View>
 
       {/* Header Overlay */}
