@@ -18,11 +18,16 @@ const BAKUL_ITEMS: NavItem[] = [
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
 ];
 
-export function BottomNav({ mode }: { mode: "dolan" | "bakul" }) {
+const ADMIN_ITEMS: NavItem[] = [
+  { href: "/(admin)/dashboard", icon: "chart-line", label: "Dashboard" },
+  { href: "/(admin)/events", icon: "calendar-check", label: "Events" },
+];
+
+export function BottomNav({ mode }: { mode: "dolan" | "bakul" | "admin" }) {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const items = mode === "dolan" ? DOLAN_ITEMS : BAKUL_ITEMS;
+  const items = mode === "dolan" ? DOLAN_ITEMS : mode === "bakul" ? BAKUL_ITEMS : ADMIN_ITEMS;
 
   return (
     <View 

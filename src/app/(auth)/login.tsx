@@ -104,6 +104,8 @@ export default function LoginScreen() {
       const currentUser = useAppStore.getState().user;
       if (currentUser?.role === "pedagang") {
         router.replace("/(bakul)/home");
+      } else if (currentUser?.role === "admin") {
+        router.replace("/(admin)/dashboard");
       } else {
         router.replace("/(dolan)/home");
       }
