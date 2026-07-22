@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "blusukan-fe",
+    "name": "Blusukan",
     "slug": "blusukan-fe",
     "version": "1.0.0",
     "scheme": "blusukan",
@@ -11,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.bytesfest.blusukan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -27,6 +28,13 @@
       "expo-status-bar",
       "expo-font",
       "expo-splash-screen"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9b7d7bc4-0dd7-4af7-99c8-27a4c2b3c985"
+      }
+    },
+    "owner": "kurrorro"
   }
 }

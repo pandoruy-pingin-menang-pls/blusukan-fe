@@ -45,7 +45,7 @@ export default function RoleSelectionScreen() {
 
   const confirmWisatawan = async () => {
     setIsWisatawanModalVisible(false);
-    
+
     // Give animation time to finish before heavy operations
     setTimeout(async () => {
       if (isLoggedIn) {
@@ -154,7 +154,7 @@ export default function RoleSelectionScreen() {
           >
             <View className="flex-col items-center p-6">
               <Image
-                source={require("../../../assets/mblus/adventure.png")}
+                source={require("../../../assets/mblus/Adventure.png")}
                 style={{ width: 120, height: 120, marginBottom: 16 }}
                 resizeMode="contain"
               />
@@ -200,7 +200,7 @@ export default function RoleSelectionScreen() {
         </View>
       </View>
 
-      <ConfirmationModal 
+      <ConfirmationModal
         visible={isWisatawanModalVisible}
         roleName="Wisatawan"
         onClose={() => setIsWisatawanModalVisible(false)}

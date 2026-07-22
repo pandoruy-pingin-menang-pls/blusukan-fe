@@ -22,7 +22,12 @@ const BAKUL_ITEMS: NavItem[] = [
   { href: "/(bakul)/my-store", icon: "store", label: "Toko" },
 ];
 
-export function BottomNav({ mode }: { mode: "dolan" | "bakul" }) {
+const ADMIN_ITEMS: NavItem[] = [
+  { href: "/(admin)/dashboard", icon: "chart-line", label: "Dashboard" },
+  { href: "/(admin)/events", icon: "calendar-check", label: "Events" },
+];
+
+export function BottomNav({ mode }: { mode: "dolan" | "bakul" | "admin" }) {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
@@ -30,10 +35,12 @@ export function BottomNav({ mode }: { mode: "dolan" | "bakul" }) {
   
   const items = mode === "dolan" 
     ? DOLAN_ITEMS 
-    : BAKUL_ITEMS.filter(item => {
-        if (item.href === "/(bakul)/my-store") return user?.has_merchant_profile;
-        return true;
-      });
+    : mode === "bakul"
+      ? BAKUL_ITEMS.filter(item => {
+          if (item.href === "/(bakul)/my-store") return user?.has_merchant_profile;
+          return true;
+        })
+      : ADMIN_ITEMS;
 
   return (
     <View 
