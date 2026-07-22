@@ -8,6 +8,7 @@ import {
   ScrollView,
   ImageBackground,
   StyleSheet,
+  Switch,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../store/useAppStore";
@@ -72,6 +73,7 @@ export default function RegisterMerchantScreen() {
   const [latitude, setLatitude] = useState("-7.5666");
   const [longitude, setLongitude] = useState("110.8283");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isRedemptionPartner, setIsRedemptionPartner] = useState(false);
 
   const registerMerchant = useAppStore((state) => state.registerMerchant);
   const user = useAppStore((state) => state.user);
@@ -107,8 +109,9 @@ export default function RegisterMerchantScreen() {
         address,
         latitude: latitude ? parseFloat(latitude) : undefined,
         longitude: longitude ? parseFloat(longitude) : undefined,
+        is_redemption_partner: isRedemptionPartner,
       });
-      router.replace("/(bakul)/home");
+      router.replace("/(bakul)/dashboard");
     } catch (error: any) {
       setShowModal(false);
       if (error.response?.status === 422) {
@@ -421,6 +424,24 @@ export default function RegisterMerchantScreen() {
               />
             </View>
           </View>
+        </View>
+
+        <View className="mb-6 bg-orange-50/50 p-4 rounded-2xl border border-orange-100/50">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-2 flex-1">
+              <Ionicons name="game-controller" size={20} color="#ea580c" />
+              <Text className="text-ink-dark font-sans-bold text-base">Redemption Partner</Text>
+            </View>
+            <Switch 
+              value={isRedemptionPartner}
+              onValueChange={setIsRedemptionPartner}
+              trackColor={{ false: "#cbd5e1", true: "#f97316" }}
+              thumbColor="#ffffff"
+            />
+          </View>
+          <Text className="text-ink-soft font-sans text-sm leading-relaxed">
+            Aktifkan opsi ini jika Anda bersedia menjadi redemption partner. Selain dapat membuat promo gamifikasi, toko Anda akan mendapatkan prioritas (multiplier) dalam rekomendasi AI kepada turis.
+          </Text>
         </View>
 
         <TouchableOpacity
