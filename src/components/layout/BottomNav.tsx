@@ -1,5 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { usePathname, useRouter } from "expo-router";
+import { useAppStore } from "../../store/useAppStore";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,13 +18,21 @@ const BAKUL_ITEMS: NavItem[] = [
   { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Beranda" },
   { href: "/(bakul)/stock", icon: "boxes-stacked", label: "Prediksi" },
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
+  { href: "/(bakul)/my-store", icon: "store", label: "Toko" },
 ];
 
 export function BottomNav({ mode }: { mode: "dolan" | "bakul" }) {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const items = mode === "dolan" ? DOLAN_ITEMS : BAKUL_ITEMS;
+  const user = useAppStore(state => state.user);
+  
+  const items = mode === "dolan" 
+    ? DOLAN_ITEMS 
+    : BAKUL_ITEMS.filter(item => {
+        if (item.href === "/(bakul)/my-store") return user?.has_merchant_profile;
+        return true;
+      });
 
   return (
     <View 
