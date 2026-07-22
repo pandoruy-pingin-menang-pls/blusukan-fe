@@ -100,7 +100,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       await saveToken("access_token", data.access_token);
       await saveToken("refresh_token", data.refresh_token);
       await saveToken("user_data", JSON.stringify(data.user));
-      set({ user: data.user, isLoggedIn: true });
+      
+      let mId = null;
+      if (data.user.role === "pedagang" || data.user.has_merchant_profile) {
+        try {
+          const mData = await axios.get(
+            `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/merchants/me`,
+            { headers: { Authorization: `Bearer ${data.access_token}` } }
+          );
+          mId = mData.data.id;
+        } catch (e) {
+          console.error("Failed to fetch merchant id on login", e);
+        }
+      }
+      
+      set({ user: data.user, isLoggedIn: true, merchant_id: mId });
     } catch (error) {
       console.error("Login API Error:", error);
       throw error;

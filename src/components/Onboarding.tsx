@@ -22,12 +22,12 @@ import Animated, {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const DATA = [
-  { id: "0" }, 
+  { id: "0" },
   {
     id: "1",
     title: "Ayo Dolan Bareng Blusukan!",
     desc: "Jelajahi tempat-tempat seru dan temukan hidden gems di sekitarmu.",
-    image: require("../../assets/mblus/adventure.png"),
+    image: require("../../assets/mblus/Adventure.png"),
   },
   {
     id: "2",
@@ -119,7 +119,7 @@ export const Onboarding = () => {
   };
 
   return (
-    <LinearGradient 
+    <LinearGradient
       colors={["#F4E9DA", "#F4E9DA", "#EEF3F9"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0.8, y: 1 }}
@@ -175,8 +175,8 @@ export const Onboarding = () => {
                 accessibilityLabel={`Ilustrasi ${item.title}`}
                 className="mb-8"
               />
-              <Text 
-                style={{ fontFamily: 'PlayfairDisplay_700Bold' }} 
+              <Text
+                style={{ fontFamily: 'PlayfairDisplay_700Bold' }}
                 className="text-4xl text-navy-900 text-center mb-4"
               >
                 {item.title}
