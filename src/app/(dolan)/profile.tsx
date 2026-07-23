@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Image
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -28,9 +28,23 @@ type UserProfile = {
 };
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    if (params.updated === "true") {
+      setShowToast(true);
+      const timer = setTimeout(() => {
+        setShowToast(false);
+        router.setParams({ updated: undefined });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [params.updated]);
+
   const fetchProfile = async () => {
     setIsLoading(true);
     setError("");
@@ -97,7 +111,7 @@ export default function ProfileScreen() {
               <LinearGradient
                 colors={['#FB923C', '#E8751A']}
                 className="w-full relative overflow-hidden rounded-b-[16px] border-b-[2px] border-[#BA5E12]"
-                style={{ paddingTop: insets.top + 25 }}
+                style={{ paddingTop: insets.top + 25, height: 170 }}
               >
                 {/* Background scenery, dinaikkan dan diperbesar area tampilnya */}
                 <View className="absolute bottom-1 left-0 right-0 h-44 overflow-hidden">
@@ -126,9 +140,10 @@ export default function ProfileScreen() {
                     onPress={() => router.push({ pathname: "/(dolan)/edit-profile", params: { full_name: profile.full_name } })}
                     activeOpacity={0.8}
                   >
-                    <Text className="font-sans text-white/90 text-sm">
+                    <Text className="text-base font-sans text-white/80 mb-8">
                       Edit profile detail {'>'}
                     </Text>
+                    
                   </TouchableOpacity>
                 </View>
               </LinearGradient>
@@ -136,6 +151,16 @@ export default function ProfileScreen() {
           )}
         </View>
       </ScrollView>
+
+      {showToast && (
+        <View 
+          className="absolute bottom-6 right-6 bg-green-600 rounded-xl px-4 py-3 flex-row items-center shadow-lg"
+          style={{ zIndex: 100, elevation: 5 }}
+        >
+          <Ionicons name="checkmark-circle" size={20} color="white" style={{ marginRight: 8 }} />
+          <Text className="text-white font-sans-medium">Profil berhasil diperbarui!</Text>
+        </View>
+      )}
     </ImageBackground>
   );
 }

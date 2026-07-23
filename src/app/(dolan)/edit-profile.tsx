@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  Image
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { getToken } from "../../utils/secureStore";
 import { Alert } from "../../components/ui/Alert";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 type UserProfile = {
   id: string;
   email: string;
@@ -26,11 +28,13 @@ type UserProfile = {
 };
 const IconInput = ({ icon, ...props }: any) => {
   const [focused, setFocused] = useState(false);
+  const isEditable = props.editable !== false;
+  
   return (
     <View
-      className={`flex-row items-center bg-white border-[1.5px] rounded-btn px-3.5 py-3 ${
+      className={`flex-row items-center border-[1.5px] rounded-btn px-3.5 py-3 ${
         focused ? "border-navy-600" : "border-line"
-      }`}
+      } ${!isEditable ? "bg-slate-100" : "bg-white"}`}
     >
       <Ionicons
         name={icon}
@@ -42,20 +46,20 @@ const IconInput = ({ icon, ...props }: any) => {
         placeholderTextColor="#8A93A0"
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={{ color: "#1E2733", flex: 1, fontSize: 16 }}
+        style={{ color: !isEditable ? "#64748b" : "#1E2733", flex: 1, fontSize: 16, ...(props.style || {}) }}
         {...props}
       />
     </View>
   );
 };
 export default function EditProfileScreen() {
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fullName, setFullName] = useState("");
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const fetchProfile = async () => {
     setIsLoading(true);
     setError("");
@@ -90,7 +94,6 @@ export default function EditProfileScreen() {
     }
     setIsSaving(true);
     setError("");
-    setSuccess("");
     
     try {
       const token = await getToken("access_token");
@@ -100,10 +103,7 @@ export default function EditProfileScreen() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setSuccess("Profil berhasil diperbarui!");
-      setTimeout(() => {
-        router.back();
-      }, 1500);
+      router.replace({ pathname: "/(dolan)/profile", params: { updated: "true" } });
     } catch (err: any) {
       setError(err.response?.data?.detail || "Gagal menyimpan profil");
     } finally {
@@ -121,61 +121,59 @@ export default function EditProfileScreen() {
         colors={["#FDEBD0", "#D6EAF8"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
+        style={[StyleSheet.absoluteFill, { zIndex: -2 }]}
       />
-      {/* Back Button */}
-      <TouchableOpacity
-        onPress={() => router.back()}
+      
+      {/* Top Navy Gradient Section */}
+      <LinearGradient
+        colors={['#1E3A8A', '#0F2A4A']}
         style={{
           position: "absolute",
-          top: 40,
-          left: 16,
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: "white",
-          justifyContent: "center",
-          alignItems: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-          zIndex: 10,
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 170,
+          zIndex: 0,
+          overflow: "hidden"
         }}
       >
-        <Ionicons name="arrow-back-outline" size={24} color="#22548C" />
-      </TouchableOpacity>
+        <Image
+          source={require("../../../assets/edit-profile-wave.png")}
+          style={{ width: '100%', height: '100%', opacity: 0.3 }}
+          resizeMode="cover"
+        />
+      </LinearGradient>
+
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 40 }}
+        style={{ flex: 1, backgroundColor: 'transparent', zIndex: 1  }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40, paddingTop: insets.top + 25 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ marginTop: 60 }}>
+        <View style={{ marginTop: 0 }}>
           <Text
             style={{
               fontSize: 32,
               letterSpacing: 1,
+              fontFamily: 'PlayfairDisplay_700Bold'
             }}
-            className="font-playfair font-semibold text-navy-900 mb-2"
+            className="text-white mb-2"
           >
             Edit Profil
           </Text>
           <Text
-            style={{ color: "#BA5E12" }}
-            className="text-base font-sans mb-8"
+            className="text-base font-sans text-white/80 mb-8"
           >
             Perbarui data diri Anda
           </Text>
         </View>
         <Alert message={error} type="error" />
-        <Alert message={success} type="success" />
 
         <View style={{ display: isLoading ? 'flex' : 'none', flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 }}>
           <ActivityIndicator size="large" color="#22548C" />
         </View>
 
-        <View style={{ display: (!isLoading && profile) ? 'flex' : 'none', width: '100%' }}>
+        <View style={{ display: (!isLoading && profile) ? 'flex' : 'none', width: '100%', marginTop: 40 }}>
           {profile && (
             <>
               <View style={{ gap: 16, marginBottom: 32 }}>
@@ -196,38 +194,13 @@ export default function EditProfileScreen() {
                   <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">
                     Email
                   </Text>
-                  <View className="flex-row items-center bg-gray-100 border-[1.5px] border-line rounded-btn px-3.5 py-3">
-                    <Ionicons
-                      name="mail-outline"
-                      size={20}
-                      color="#8A93A0"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={{ color: "#8A93A0", flex: 1, fontSize: 16 }}>
-                      {profile.email}
-                    </Text>
-                  </View>
-                  <Text className="text-[11px] font-sans text-ink-faint mt-1 ml-1">
-                    *Email tidak dapat diubah
-                  </Text>
+                  <IconInput
+                    icon="mail-outline"
+                    value={profile.email}
+                    editable={false}
+                  />
                 </View>
 
-                <View>
-                  <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">
-                    Peran (Role)
-                  </Text>
-                  <View className="flex-row items-center bg-gray-100 border-[1.5px] border-line rounded-btn px-3.5 py-3">
-                    <Ionicons
-                      name="shield-checkmark-outline"
-                      size={20}
-                      color="#8A93A0"
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={{ color: "#8A93A0", flex: 1, fontSize: 16 }} className="capitalize">
-                      {profile.role}
-                    </Text>
-                  </View>
-                </View>
               </View>
 
               <View style={{ gap: 12 }}>
@@ -236,7 +209,7 @@ export default function EditProfileScreen() {
                   disabled={isSaving}
                   activeOpacity={0.8}
                   style={{
-                    backgroundColor: isSaving ? "#6b8ab0" : "#22548C",
+                    backgroundColor: isSaving ? "#6b8ab0" : "#0F2A4A",
                     borderRadius: 14,
                     paddingVertical: 14,
                     alignItems: "center",
@@ -247,7 +220,7 @@ export default function EditProfileScreen() {
                     {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity 
                   onPress={() => router.back()}
                   disabled={isSaving}
@@ -274,3 +247,4 @@ export default function EditProfileScreen() {
     </ImageBackground>
   );
 }
+
