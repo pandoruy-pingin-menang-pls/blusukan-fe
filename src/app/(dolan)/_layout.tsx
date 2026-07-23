@@ -8,11 +8,13 @@ export default function DolanLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const isHome = pathname === "/(dolan)/home" || pathname === "/home";
+  const isProfile = pathname === "/(dolan)/profile" || pathname === "/profile";
+  const isFullScreen = isHome || isProfile;
 
   return (
     <View className="flex-1 bg-white">
-      {!isHome && <TopBar />}
-      <View className="flex-1" style={{ paddingTop: isHome ? 0 : insets.top }}>
+      {!isFullScreen && <TopBar />}
+      <View className="flex-1" style={{ paddingTop: isFullScreen ? 0 : insets.top }}>
         <Slot />
       </View>
       <BottomNav mode="dolan" />
