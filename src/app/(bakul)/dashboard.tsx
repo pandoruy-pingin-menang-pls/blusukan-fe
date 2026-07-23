@@ -58,6 +58,7 @@ export default function BakulDashboardScreen() {
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
   const [catalogCount, setCatalogCount] = useState<number>(0);
   const [promoCount, setPromoCount] = useState<number>(0);
+  const [txSummary, setTxSummary] = useState<{ total_omzet: number; total_transaksi: number } | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -82,6 +83,13 @@ export default function BakulDashboardScreen() {
           } else {
             console.error("Gagal mengambil prediksi:", predErr);
           }
+        }
+
+        try {
+          const summaryRes = await apiClient.get(`/api/merchants/${idToUse}/transactions/summary`);
+          setTxSummary(summaryRes.data);
+        } catch (summaryErr) {
+          console.error("Gagal mengambil summary transaksi:", summaryErr);
         }
 
         try {
@@ -208,6 +216,57 @@ export default function BakulDashboardScreen() {
                   <Text className="font-sans-bold text-2xl text-navy-900">{promoCount}</Text>
                   <Text className="font-sans text-[11px] text-slate-500">Promo Aktif</Text>
                 </View>
+              </View>
+            </View>
+
+            {/* Transaction Summary Card */}
+            <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <View className="bg-navy-900">
+                <ImageBackground
+                  source={require("../../../assets/dashboard-batik-overlay.png")}
+                  style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                  imageStyle={{ opacity: 0.4 }}
+                  resizeMode="cover"
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="stats-chart" size={20} color="white" />
+                    <Text className="font-sans-bold text-white text-lg flex-1">
+                      Ringkasan Penjualan
+                    </Text>
+                    <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
+                      <Text className="text-white text-xs font-sans-bold capitalize">
+                        Hari Ini
+                      </Text>
+                    </View>
+                  </View>
+                </ImageBackground>
+              </View>
+
+              <View className="p-5">
+                {txSummary ? (
+                  <View className="flex-row justify-between gap-3">
+                    <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                      <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                        Total Omzet
+                      </Text>
+                      <Text className="font-sans-bold text-orange-600 text-[15px] text-center" numberOfLines={1}>
+                        Rp{txSummary.total_omzet.toLocaleString("id-ID")}
+                      </Text>
+                    </View>
+                    <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                      <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                        Total Transaksi
+                      </Text>
+                      <Text className="font-sans-bold text-navy-900 text-lg">
+                        {txSummary.total_transaksi}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View className="items-center py-4">
+                    <Text className="font-sans text-slate-400 text-sm">Belum ada transaksi hari ini.</Text>
+                  </View>
+                )}
               </View>
             </View>
 
