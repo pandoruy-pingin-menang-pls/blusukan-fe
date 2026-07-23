@@ -78,7 +78,9 @@ jobs:
         with:
           artifacts: ${{ steps.get_version.outputs.apk_name }}
           tag: ${{ steps.get_version.outputs.version }}
+          commit: ${{ github.sha }}
           name: "Blusukan ${{ steps.get_version.outputs.version }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             ## 📱 Blusukan ${{ steps.get_version.outputs.version }}
 
