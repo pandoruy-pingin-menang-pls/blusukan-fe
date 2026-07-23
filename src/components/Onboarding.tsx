@@ -18,6 +18,7 @@ import Animated, {
   interpolateColor,
   useSharedValue,
 } from "react-native-reanimated";
+import { useAppStore } from "../store/useAppStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -80,6 +81,7 @@ const ProgressBar = () => {
 export const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+  const { isLoggedIn, user } = useAppStore();
 
   useEffect(() => {
     if (currentStep === 0) {
@@ -115,7 +117,17 @@ export const Onboarding = () => {
   };
 
   const finishOnboarding = () => {
-    router.replace("/(auth)/login");
+    if (isLoggedIn) {
+      if (user?.role === "pedagang") {
+        router.replace("/(bakul)/dashboard");
+      } else if (user?.role === "wisatawan") {
+        router.replace("/(dolan)/home");
+      } else {
+        router.replace("/(auth)/role-selection");
+      }
+    } else {
+      router.replace("/(auth)/login");
+    }
   };
 
   return (

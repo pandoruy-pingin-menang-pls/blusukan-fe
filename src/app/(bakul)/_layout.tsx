@@ -13,7 +13,7 @@ export default function BakulLayout() {
 
   return (
     <View className="flex-1 bg-white">
-      <TopBar />
+      {!isDashboard && <TopBar />}
       <View className="flex-1" style={{ paddingTop: noTopPadding ? 0 : insets.top }}>
         <Slot />
       </View>

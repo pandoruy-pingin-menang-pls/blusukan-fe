@@ -129,7 +129,7 @@ export default function MyStoreScreen() {
           left: 0,
           right: 0,
           height: 170,
-          zIndex: 0,
+          zIndex: 10,
           overflow: "hidden"
         }}
       >
@@ -147,7 +147,7 @@ export default function MyStoreScreen() {
           top: insets.top + 25,
           left: 24,
           right: 24,
-          zIndex: 10
+          zIndex: 20
         }}
       >
         <Text

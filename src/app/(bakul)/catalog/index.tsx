@@ -171,7 +171,7 @@ export default function BakulCatalogScreen() {
                           {item.item_name}
                         </Text>
                         <View className="flex-row items-center gap-1.5">
-                          <View className="bg-orange-100 px-2 py-0.5 rounded-full">
+                          <View className="border border-orange-300 px-2 py-0.5 rounded-full">
                             <Text className="text-[10px] font-sans-semibold text-orange-700 uppercase tracking-wide">
                               {item.category}
                             </Text>
