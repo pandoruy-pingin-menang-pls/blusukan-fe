@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert, ImageBackground } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert, ImageBackground, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -61,10 +61,7 @@ const CustomBarChart = ({ data }: { data: Record<string, number> }) => {
                 style={{ height: `${heightPercent}%`, minHeight: 4 }} 
               />
             </View>
-            <View className="flex-row items-center mt-3 mb-1">
-              <FontAwesome6 name={role === 'admin' ? 'user-shield' : role === 'pedagang' ? 'store' : 'user'} size={10} color="#64748b" />
-            </View>
-            <Text className="text-slate-600 font-sans-semibold text-[10px] capitalize">{role}</Text>
+            <Text className="text-slate-600 font-sans-semibold text-[10px] capitalize mt-3">{role}</Text>
           </View>
         );
       })}
@@ -73,39 +70,32 @@ const CustomBarChart = ({ data }: { data: Record<string, number> }) => {
 };
 
 const MethodBadge = ({ method }: { method: string }) => {
-  let bgColor = "bg-slate-100";
   let textColor = "text-slate-600";
-  
-  switch(method.toUpperCase()) {
+  switch (method) {
     case 'GET':
-      bgColor = "bg-sky-50";
-      textColor = "text-sky-700";
+      textColor = "text-green-600";
       break;
     case 'POST':
-      bgColor = "bg-orange-50";
-      textColor = "text-[#BA5E12]";
+      textColor = "text-navy-600";
       break;
     case 'PUT':
     case 'PATCH':
-      bgColor = "bg-indigo-50";
-      textColor = "text-indigo-700";
+      textColor = "text-orange-600";
       break;
     case 'DELETE':
-      bgColor = "bg-navy-900";
-      textColor = "text-white";
+      textColor = "text-maroon-600";
       break;
   }
 
   return (
-    <View className={`${bgColor} px-2 py-0.5 rounded-md`}>
-      <Text className={`${textColor} text-[9px] font-sans-bold tracking-wider`}>{method}</Text>
-    </View>
+    <Text className={`${textColor} text-[10px] font-sans-bold tracking-wider`}>{method}</Text>
   );
 };
 
 export default function MonitoringDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [activityPage, setActivityPage] = useState(1);
   const [impactMetrics, setImpactMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -225,113 +215,183 @@ export default function MonitoringDashboard() {
   }
 
   return (
-    <View className="flex-1 bg-surface">
-      <LinearGradient
-        colors={['#1E3A8A', '#0F2A4A']}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 180,
-          zIndex: 0,
-          overflow: "hidden"
-        }}
-      >
-        <ImageBackground 
-          source={require("../../../assets/edit-profile-wave.png")}
-          style={{ width: '100%', height: '100%' }}
-          imageStyle={{ opacity: 0.3 }}
-          resizeMode="cover"
-        />
-      </LinearGradient>
+    <ImageBackground
+      source={require("../../../assets/batik-solo-overlay.png")}
+      style={{ flex: 1 }}
+      imageStyle={{ opacity: 0.2 }}
+      resizeMode="repeat"
+    >
+      <View className="flex-1 bg-surface/60">
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 100, paddingTop: 120 }}>
+        <LinearGradient
+          colors={['#1E3A8A', '#0F2A4A']}
+          style={{
+            position: "absolute",
+            top: -1000,
+            left: 0,
+            right: 0,
+            height: 1250,
+            zIndex: 0,
+            overflow: "hidden"
+          }}
+        >
+          <ImageBackground 
+            source={require("../../../assets/edit-profile-wave.png")}
+            style={{ width: '100%', height: '100%', paddingTop: 1000 }}
+            imageStyle={{ opacity: 0.3 }}
+            resizeMode="cover"
+          />
+        </LinearGradient>
         <Text className="text-[32px] font-playfair font-semibold tracking-wide text-white mb-6">Smart Monitoring Dashboard</Text>
       
+      {/* ==============================
+          ACTIVITY MONITORING
+          ============================== */}
+
+      <View className="flex-row gap-4 mb-6">
+        <View className="flex-1 shadow-sm">
+          <View className="h-8 rounded-t-2xl overflow-hidden bg-[#BA5E12]">
+            <ImageBackground
+              source={require("../../../assets/event-batik-dashboard.jpeg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.25 }}
+              resizeMode="cover"
+            />
+          </View>
+          <View className="bg-white p-4 pt-3 rounded-b-2xl border border-t-0 border-slate-100">
+            <View className="mb-2">
+              <Ionicons name="people" size={20} color="#BA5E12" />
+            </View>
+            <Text className="text-slate-500 text-[11px] font-sans-medium mb-1">Active Users Today</Text>
+            <Text className="text-3xl font-sans-bold text-navy-900">{stats?.active_users_today || 0}</Text>
+          </View>
+        </View>
+
+        <View className="flex-1 shadow-sm">
+          <View className="h-8 rounded-t-2xl overflow-hidden bg-navy-900">
+            <ImageBackground
+              source={require("../../../assets/event-batik-dashboard.jpeg")}
+              style={{ flex: 1 }}
+              imageStyle={{ opacity: 0.25 }}
+              resizeMode="cover"
+            />
+          </View>
+          <View className="bg-white p-4 pt-3 rounded-b-2xl border border-t-0 border-slate-100">
+            <View className="mb-2">
+              <Ionicons name="pulse" size={20} color="#14335A" />
+            </View>
+            <Text className="text-slate-500 text-[11px] font-sans-medium mb-1">Total Activities</Text>
+            <Text className="text-3xl font-sans-bold text-navy-900">{stats?.total_activities_today || 0}</Text>
+          </View>
+        </View>
+      </View>
+      
+      <View className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-6">
+        <View className="border-b border-slate-100 pb-4 mb-2">
+          <Text className="text-lg font-playfair font-semibold tracking-wide text-navy-900">Distribution by Role</Text>
+        </View>
+        <View className="mt-2">
+          <CustomBarChart data={stats?.distribution_by_role || {}} />
+        </View>
+      </View>
+
+      <View className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-8">
+        <View className="border-b border-slate-100 pb-4 mb-4">
+          <Text className="text-lg font-playfair font-semibold tracking-wide text-navy-900">Recent Accessed Activities</Text>
+        </View>
+        
+        {(() => {
+          const paginatedActivities = activities.slice((activityPage - 1) * 5, activityPage * 5);
+          const totalActivityPages = Math.ceil(activities.length / 5);
+
+          return (
+            <View>
+              <View className="gap-3">
+                {paginatedActivities.map((act) => (
+                  <View key={act.id} className="flex-col bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <View className="flex-row items-center justify-between mb-1.5">
+                      <Text className="text-sm font-sans-bold text-navy-900 flex-1 pr-2" numberOfLines={1}>{act.action}</Text>
+                      <MethodBadge method={act.method} />
+                    </View>
+                    <View className="flex-row items-center justify-between mt-0.5">
+                      <Text className="text-[11px] font-sans text-slate-500 flex-1 pr-2" numberOfLines={1}>{act.endpoint}</Text>
+                      <Text className="text-[10px] font-sans-medium text-slate-400">
+                        {new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    {act.role && (
+                      <View className="flex-row items-center mt-2 border-t border-slate-200/60 pt-2">
+                        <Text className="text-[10px] font-sans-semibold text-slate-400 uppercase tracking-wider">{act.role}</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+                {activities.length === 0 && (
+                  <Text className="py-6 text-center text-slate-400 font-sans">Belum ada aktivitas terekam.</Text>
+                )}
+              </View>
+
+              {totalActivityPages > 1 && (
+                <View className="flex-row justify-between items-center mt-5 border-t border-slate-100 pt-4">
+                  <TouchableOpacity 
+                    disabled={activityPage === 1} 
+                    onPress={() => setActivityPage(p => Math.max(1, p - 1))}
+                    className="p-2"
+                  >
+                    <Ionicons name="chevron-back" size={20} color={activityPage === 1 ? '#94a3b8' : '#14335A'} />
+                  </TouchableOpacity>
+                  <Text className="font-sans-medium text-slate-500 text-xs">Hal {activityPage} dari {totalActivityPages}</Text>
+                  <TouchableOpacity 
+                    disabled={activityPage === totalActivityPages} 
+                    onPress={() => setActivityPage(p => Math.min(totalActivityPages, p + 1))}
+                    className="p-2"
+                  >
+                    <Ionicons name="chevron-forward" size={20} color={activityPage === totalActivityPages ? '#94a3b8' : '#14335A'} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          );
+        })()}
+      </View>
+
+      {/* ==============================
+          SMART IMPACT DASHBOARD
+          ============================== */}
+      <View className="h-[1px] bg-slate-200 my-2 mb-8" />
+
       {/* Smart Impact Alert */}
       {renderConditionAlert()}
 
       {/* Smart Impact Metrics */}
       <View className="flex-row flex-wrap justify-between mb-2">
         {impactMetrics?.metrics?.map((m: any, i: number) => (
-          <View key={i} className="w-[48%] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
-            <Text className="text-slate-500 text-xs font-sans-medium mb-1.5" numberOfLines={2}>{m.label}</Text>
-            <Text className="text-2xl font-sans-bold text-navy-900">{m.value}</Text>
+          <View key={i} className="w-[48%] shadow-sm mb-4">
+            <View className={`h-8 rounded-t-xl overflow-hidden ${i === 0 || i === 3 ? 'bg-navy-900' : 'bg-[#BA5E12]'}`}>
+              <ImageBackground
+                source={require("../../../assets/event-batik-dashboard.jpeg")}
+                style={{ flex: 1 }}
+                imageStyle={{ opacity: 0.25 }}
+                resizeMode="cover"
+              />
+            </View>
+            <View className="bg-white p-4 pt-3 rounded-b-xl border border-t-0 border-slate-100">
+              <Text className="text-slate-500 text-[11px] font-sans-medium mb-1" numberOfLines={2}>{m.label}</Text>
+              <Text className="text-xl font-sans-bold text-navy-900">{m.value}</Text>
+            </View>
           </View>
         ))}
-      </View>
-      
-      <View className="flex-row gap-4 mb-6">
-        <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <View className="mb-3">
-            <Ionicons name="people" size={24} color="#BA5E12" />
-          </View>
-          <Text className="text-slate-500 text-xs font-sans-medium mb-1">Active Users Today</Text>
-          <Text className="text-3xl font-sans-bold text-navy-900">{stats?.active_users_today || 0}</Text>
-        </View>
-        <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <View className="mb-3">
-            <Ionicons name="pulse" size={24} color="#14335A" />
-          </View>
-          <Text className="text-slate-500 text-xs font-sans-medium mb-1">Total Activities</Text>
-          <Text className="text-3xl font-sans-bold text-navy-900">{stats?.total_activities_today || 0}</Text>
-        </View>
-      </View>
-      
-      <View className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-6">
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-base font-sans-bold text-navy-900">Distribution by Role</Text>
-          <Ionicons name="bar-chart" size={18} color="#94a3b8" />
-        </View>
-        <CustomBarChart data={stats?.distribution_by_role || {}} />
-      </View>
-
-      <View className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-base font-sans-bold text-navy-900">Recent Activities</Text>
-          <Ionicons name="time-outline" size={18} color="#94a3b8" />
-        </View>
-        <View className="space-y-4">
-          {activities.map((act) => (
-            <View key={act.id} className="flex-row items-start border-b border-slate-50 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
-              <View className="w-8 h-8 rounded-full bg-slate-50 items-center justify-center mr-3 mt-1">
-                <FontAwesome6 name="bolt" size={12} color="#94a3b8" />
-              </View>
-              <View className="flex-1">
-                <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-sm font-sans-bold text-navy-900 flex-1 pr-2" numberOfLines={1}>{act.action}</Text>
-                  <MethodBadge method={act.method} />
-                </View>
-                <View className="flex-row items-center justify-between mt-1">
-                  <Text className="text-[11px] font-sans text-slate-500 flex-1 pr-2" numberOfLines={1}>{act.endpoint}</Text>
-                  <Text className="text-[10px] font-sans-medium text-slate-400">
-                    {new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </View>
-                {act.role && (
-                  <View className="flex-row items-center mt-1.5">
-                    <Text className="text-[10px] font-sans-semibold text-slate-400 uppercase tracking-wider">{act.role}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          ))}
-          {activities.length === 0 && (
-            <Text className="py-6 text-center text-slate-400 font-sans">Belum ada aktivitas terekam.</Text>
-          )}
-        </View>
       </View>
 
       {/* Action Logs (Event Logs) */}
       <View className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
-        <View className="flex-row items-center justify-between border-b border-slate-100 pb-4 mb-4">
-          <Text className="text-base font-sans-bold text-navy-900">Event Action Logs</Text>
-          <Ionicons name="list-outline" size={18} color="#94a3b8" />
+        <View className="border-b border-slate-100 pb-4 mb-4">
+          <Text className="text-lg font-playfair font-semibold tracking-wide text-navy-900">Event Action Logs</Text>
         </View>
 
         {/* Filters */}
-        <View className="mb-6 space-y-3">
-          <View className="flex-row flex-wrap gap-2">
+        <View className="mb-6 flex-col gap-3">
+          <View className="flex-row flex-wrap gap-2 mb-1">
             {PERIODS.map(p => (
               <Pressable 
                 key={p.value}
@@ -364,31 +424,30 @@ export default function MonitoringDashboard() {
             {eventLogs.map((log) => (
               <View key={log.id} className="border-b border-slate-50 py-4 last:border-0 flex-row items-center justify-between">
                 <View className="flex-1 pr-3">
-                  <View className="flex-row items-start justify-between mb-1">
-                    <Text className="font-sans-bold text-navy-900 text-sm flex-1 pr-2" numberOfLines={1}>{log.name}</Text>
-                    <View className={`px-2 py-0.5 rounded-md ${log.status === 'pending_review' ? 'bg-orange-50' : log.status === 'approved' ? 'bg-sky-50' : 'bg-slate-100'}`}>
-                      <Text className={`text-[9px] font-sans-bold tracking-wider capitalize ${log.status === 'pending_review' ? 'text-[#BA5E12]' : log.status === 'approved' ? 'text-sky-700' : 'text-slate-600'}`}>
-                        {log.status.replace('_', ' ')}
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row items-center mb-1.5 gap-2">
-                    <Text className="text-[11px] font-sans text-slate-500">Kategori: <Text className="font-sans-medium text-slate-700 capitalize">{log.category}</Text></Text>
-                    <View className={`px-1.5 py-0.5 rounded ${log.priority === 'High' ? 'bg-orange-50' : 'bg-slate-100'}`}>
-                       <Text className={`text-[9px] font-sans-semibold ${log.priority === 'High' ? 'text-[#BA5E12]' : 'text-slate-500'}`}>Prioritas: {log.priority}</Text>
-                    </View>
-                  </View>
+                  <Text className="font-sans-bold text-navy-900 text-sm mb-1" numberOfLines={1}>{log.name}</Text>
+                  
+                  <Text className="text-[11px] font-sans text-slate-500 mb-0.5">Kategori: <Text className="font-sans-medium text-slate-700 capitalize">{log.category}</Text></Text>
+                  
+                  <Text className="text-[11px] font-sans text-slate-500 mb-1.5">
+                    Prioritas: <Text className={`font-sans-medium ${log.priority === 'High' ? 'text-orange-600' : 'text-slate-700'}`}>{log.priority}</Text>
+                  </Text>
+
                   <View className="flex-row items-center">
                     <Ionicons name="time-outline" size={12} color="#94a3b8" />
                     <Text className="text-[10px] font-sans-medium text-slate-400 ml-1">{new Date(log.time).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
                   </View>
                 </View>
-                <View>
+                <View className="items-end justify-center">
+                   <View className="px-2 py-1 mb-2 bg-transparent">
+                      <Text className={`text-[10px] font-sans-bold tracking-wider capitalize ${log.status === 'approved' ? 'text-[#8B9A46]' : log.status === 'pending_review' ? 'text-navy-900' : 'text-[#800000]'}`}>
+                        {log.status === 'pending_review' ? 'Pending' : log.status.replace('_', ' ')}
+                      </Text>
+                   </View>
                    <Pressable 
                      onPress={() => handleAction(log.id, log.status)}
-                     className={`px-3 py-2 rounded-lg ${log.status === 'pending_review' ? 'bg-navy-900' : 'bg-slate-100'}`}
+                     className="p-1 px-2"
                    >
-                     <Text className={`text-xs font-sans-semibold ${log.status === 'pending_review' ? 'text-white' : 'text-slate-400'}`}>Aksi</Text>
+                     <FontAwesome6 name="chevron-right" size={14} color="#0F2A4A" />
                    </Pressable>
                 </View>
               </View>
@@ -400,6 +459,7 @@ export default function MonitoringDashboard() {
         )}
       </View>
     </ScrollView>
-    </View>
+      </View>
+    </ImageBackground>
   );
 }

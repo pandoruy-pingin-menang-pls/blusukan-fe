@@ -11,6 +11,8 @@ export default function AdminLayout() {
   const insets = useSafeAreaInsets();
   
   const isDashboard = pathname === "/dashboard" || pathname === "/(admin)/dashboard";
+  const isMonitoring = pathname === "/monitoring" || pathname === "/(admin)/monitoring";
+  const isFullScreen = isDashboard || isMonitoring;
 
   if (user?.role !== "admin") {
     return <Redirect href="/(auth)/login" />;
@@ -24,8 +26,8 @@ export default function AdminLayout() {
       resizeMode="repeat"
     >
       <View className="flex-1 bg-surface/60">
-        {!isDashboard && <TopBar />}
-        <View className="flex-1" style={{ paddingTop: isDashboard ? 0 : insets.top }}>
+        {!isFullScreen && <TopBar />}
+        <View className="flex-1" style={{ paddingTop: isFullScreen ? 0 : insets.top }}>
           <Slot />
         </View>
         <BottomNav mode="admin" />

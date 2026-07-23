@@ -53,16 +53,18 @@ export function BottomNav({ mode }: { mode: "dolan" | "bakul" | "admin" }) {
           <Pressable
             key={item.href}
             onPress={() => router.push(item.href as any)}
-            className="flex-1 items-center gap-1 py-1"
+            className="flex-1 items-center gap-0.5 py-1"
           >
-            <FontAwesome6
-              name={item.icon as any}
-              size={19}
-              color={active ? "#14335A" : "#8A93A0"}
-            />
+            <View className={`px-4 py-1.5 rounded-full mb-0.5 ${active ? 'bg-navy-100/60' : 'bg-transparent'}`}>
+              <FontAwesome6
+                name={item.icon as any}
+                size={18}
+                color={active ? "#14335A" : "#8A93A0"}
+              />
+            </View>
             <Text
-              className={`text-[10.5px] font-sans-semibold ${
-                active ? "text-navy-800" : "text-ink-faint"
+              className={`text-[10px] font-sans-semibold ${
+                active ? "text-navy-900" : "text-ink-faint"
               }`}
             >
               {item.label}
