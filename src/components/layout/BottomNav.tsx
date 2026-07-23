@@ -7,14 +7,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type NavItem = { href: string; icon: string; label: string };
 
 const DOLAN_ITEMS: NavItem[] = [
-  { href: "/(dolan)/home", icon: "house", label: "Beranda" },
+  { href: "/(dolan)/home", icon: "house", label: "Dashboard" },
   { href: "/(dolan)/itinerary", icon: "map", label: "Rute" },
   { href: "/(dolan)/stamps", icon: "stamp", label: "Stempel" },
   { href: "/(dolan)/profile", icon: "user", label: "Profil" },
 ];
 
 const BAKUL_ITEMS: NavItem[] = [
-  { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Beranda" },
+  { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Dashboard" },
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
   { href: "/(bakul)/catalog", icon: "book-open", label: "Katalog" },
   { href: "/(bakul)/promo", icon: "gift", label: "Promo" },

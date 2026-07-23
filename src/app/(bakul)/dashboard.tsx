@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { 
   View, 
   Text, 
@@ -7,8 +7,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  TouchableOpacity
+  TouchableOpacity,
+  Animated,
+  Pressable
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,7 +37,22 @@ type PredictionData = {
 
 export default function BakulDashboardScreen() {
   const merchant_id = useAppStore(state => state.merchant_id);
-  const { logout } = useAppStore();
+  const { user, logout } = useAppStore();
+  const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
+
+  const name = user?.full_name?.split(" ")[0] || "";
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [50, 100],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
   
   const [merchantData, setMerchantData] = useState<any>(null);
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
@@ -96,28 +114,75 @@ export default function BakulDashboardScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require("../../../assets/batik-solo-overlay.png")}
-      style={{ flex: 1 }}
-      imageStyle={{ opacity: 0.4 }}
-      resizeMode="repeat"
-    >
-      <LinearGradient
-        colors={["#FDEBD0", "#D6EAF8"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
-      />
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40, paddingTop: 100 }}
+    <View className="flex-1 bg-slate-50">
+      {/* Sticky Top Bar (Fades in) */}
+      <Animated.View 
+        className="absolute top-0 left-0 right-0 z-50 px-5 pb-3.5 bg-white border-b border-line shadow-sm"
+        style={{ 
+          paddingTop: Math.max(insets.top, 50),
+          opacity: headerOpacity 
+        }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="flex-col justify-center">
+            <Text className="font-sans text-white text-sm">Sugeng rawuh,</Text>
+            <Text className="font-playfair font-semibold text-white text-lg">{name}</Text>
+          </View>
+          <Pressable 
+            onPress={handleLogout} 
+            className="flex-row items-center justify-center w-10 h-10 bg-red-50/80 rounded-full"
+          >
+            <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+          </Pressable>
+        </View>
+      </Animated.View>
+
+      <Animated.ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#14335A"]} />}
       >
-        <View className="mb-6">
-          <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900">
+        {/* Background shape */}
+        <View 
+          className="absolute top-0 w-[150%] left-[-25%] h-64 overflow-hidden" 
+          style={{ borderBottomLeftRadius: 300, borderBottomRightRadius: 300 }}
+        >
+          <LinearGradient
+            colors={["#EA580C", "#9A3412"]} // Orange linear gradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ flex: 1 }}
+          />
+        </View>
+
+        {/* Header Hero Section */}
+        <View 
+          className="px-5 pb-6 mb-6"
+          style={{ paddingTop: Math.max(insets.top, 50) }}
+        >
+          <View className="flex-row items-center justify-between mb-8">
+            <View className="flex-col justify-center">
+              <Text className="font-sans text-white text-sm">Sugeng rawuh,</Text>
+              <Text className="font-playfair font-semibold text-white text-2xl">{name}</Text>
+            </View>
+            <Pressable 
+              onPress={handleLogout} 
+              className="flex-row items-center justify-center w-10 h-10 bg-white/20 rounded-full"
+            >
+              <Ionicons name="log-out-outline" size={20} color="white" />
+            </Pressable>
+          </View>
+
+          <Text className="text-[32px] font-playfair font-semibold tracking-wide text-white">
             Siap jualan hari ini?
           </Text>
         </View>
+        <View className="px-5">
 
         <Alert message={errorMsg} type="error" />
 
@@ -233,7 +298,8 @@ export default function BakulDashboardScreen() {
             </View>
           </View>
         )}
-      </ScrollView>
-    </ImageBackground>
+        </View>
+      </Animated.ScrollView>
+    </View>
   );
 }
