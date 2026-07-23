@@ -23,6 +23,8 @@ const BAKUL_ITEMS: NavItem[] = [
 const ADMIN_ITEMS: NavItem[] = [
   { href: "/(admin)/dashboard", icon: "chart-line", label: "Dashboard" },
   { href: "/(admin)/events", icon: "calendar-check", label: "Events" },
+  { href: "/(admin)/monitoring", icon: "users-viewfinder", label: "Monitoring" },
+  { href: "/(admin)/impact-dashboard", icon: "chart-pie", label: "Impact" },
 ];
 
 export function BottomNav({ mode }: { mode: "dolan" | "bakul" | "admin" }) {
