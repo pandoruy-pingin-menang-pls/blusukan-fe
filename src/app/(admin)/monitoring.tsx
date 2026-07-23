@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAppStore } from "@/store/useAppStore";
@@ -14,6 +14,29 @@ type Activity = {
   method: string;
   created_at: string;
 };
+
+type EventLog = {
+  id: string;
+  name: string;
+  category: string;
+  status: string;
+  priority: string;
+  time: string;
+};
+
+const PERIODS = [
+  { label: "Semua Waktu", value: "all" },
+  { label: "Hari Ini", value: "today" },
+  { label: "Minggu Ini", value: "week" },
+  { label: "Bulan Ini", value: "month" }
+];
+
+const STATUSES = [
+  { label: "Semua Status", value: "all" },
+  { label: "Pending", value: "pending_review" },
+  { label: "Approved", value: "approved" },
+  { label: "Rejected", value: "rejected" }
+];
 
 const CustomBarChart = ({ data }: { data: Record<string, number> }) => {
   const entries = Object.entries(data);
@@ -82,11 +105,75 @@ const MethodBadge = ({ method }: { method: string }) => {
 export default function MonitoringDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [impactMetrics, setImpactMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const [eventLogs, setEventLogs] = useState<EventLog[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [period, setPeriod] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     fetchMonitoringData();
   }, []);
+
+  useEffect(() => {
+    fetchEventLogs();
+  }, [period, statusFilter]);
+
+  const fetchEventLogs = async () => {
+    try {
+      setLoadingEvents(true);
+      const token = await getToken("access_token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
+      
+      let logsUrl = `${baseUrl}/api/admin/impact/action-logs?period=${period}`;
+      if (statusFilter !== "all") {
+        logsUrl += `&status=${statusFilter}`;
+      }
+      const logsRes = await axios.get(logsUrl, { headers });
+      setEventLogs(logsRes.data.items || []);
+    } catch (err) {
+      console.error("Failed to fetch event logs", err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  const handleAction = (eventId: string, currentStatus: string) => {
+    if (currentStatus !== 'pending_review') {
+      Alert.alert("Info", "Event ini sudah selesai direview.");
+      return;
+    }
+
+    Alert.alert(
+      "Review Event",
+      "Apakah Anda menyetujui atau menolak event ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { text: "Tolak", style: "destructive", onPress: () => submitReview(eventId, "rejected") },
+        { text: "Setujui", style: "default", onPress: () => submitReview(eventId, "approved") }
+      ]
+    );
+  };
+
+  const submitReview = async (eventId: string, newStatus: string) => {
+    try {
+      const token = await getToken("access_token");
+      const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
+      await axios.patch(`${baseUrl}/api/admin/events/${eventId}/review`, 
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Alert.alert("Sukses", `Event berhasil di-${newStatus}`);
+      fetchEventLogs();
+      fetchMonitoringData();
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Gagal", "Terjadi kesalahan saat menyimpan review.");
+    }
+  };
 
   const fetchMonitoringData = async () => {
     try {
@@ -94,18 +181,38 @@ export default function MonitoringDashboard() {
       const headers = { Authorization: `Bearer ${token}` };
       const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
       
-      const [statsRes, actRes] = await Promise.all([
+      const [statsRes, actRes, impactRes] = await Promise.all([
         axios.get(`${baseUrl}/api/admin/monitoring/stats`, { headers }),
-        axios.get(`${baseUrl}/api/admin/monitoring/activities?limit=15`, { headers })
+        axios.get(`${baseUrl}/api/admin/monitoring/activities?limit=15`, { headers }),
+        axios.get(`${baseUrl}/api/admin/impact/metrics`, { headers })
       ]);
       
       setStats(statsRes.data);
       setActivities(actRes.data.activities);
+      setImpactMetrics(impactRes.data);
     } catch (err) {
       console.error("Failed to fetch monitoring data", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderConditionAlert = () => {
+    if (!impactMetrics) return null;
+    const isWarning = impactMetrics.condition === "Perlu Perhatian";
+    return (
+      <View className={`p-5 rounded-2xl shadow-sm border mb-6 ${isWarning ? 'bg-orange-50 border-orange-100' : 'bg-navy-50 border-navy-100'}`}>
+        <View className="flex-row items-center mb-2">
+          <FontAwesome6 name={isWarning ? "triangle-exclamation" : "circle-check"} size={16} color={isWarning ? "#BA5E12" : "#14335A"} />
+          <Text className={`ml-2 font-sans-bold text-base ${isWarning ? 'text-[#BA5E12]' : 'text-navy-900'}`}>
+            Kondisi: {impactMetrics.condition}
+          </Text>
+        </View>
+        <Text className={`text-sm font-sans leading-5 ${isWarning ? 'text-orange-900/80' : 'text-navy-800'}`}>
+          {impactMetrics.recommendation}
+        </Text>
+      </View>
+    );
   };
 
   if (loading) {
@@ -118,7 +225,20 @@ export default function MonitoringDashboard() {
 
   return (
     <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
-      <Text className="text-2xl font-sans-bold text-navy-900 mb-6">Activity Monitoring</Text>
+      <Text className="text-2xl font-sans-bold text-navy-900 mb-6">Smart Monitoring Dashboard</Text>
+      
+      {/* Smart Impact Alert */}
+      {renderConditionAlert()}
+
+      {/* Smart Impact Metrics */}
+      <View className="flex-row flex-wrap justify-between mb-2">
+        {impactMetrics?.metrics?.map((m: any, i: number) => (
+          <View key={i} className="w-[48%] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
+            <Text className="text-slate-500 text-xs font-sans-medium mb-1.5" numberOfLines={2}>{m.label}</Text>
+            <Text className="text-2xl font-sans-bold text-navy-900">{m.value}</Text>
+          </View>
+        ))}
+      </View>
       
       <View className="flex-row gap-4 mb-6">
         <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
@@ -179,6 +299,84 @@ export default function MonitoringDashboard() {
             <Text className="py-6 text-center text-slate-400 font-sans">Belum ada aktivitas terekam.</Text>
           )}
         </View>
+      </View>
+
+      {/* Action Logs (Event Logs) */}
+      <View className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
+        <View className="flex-row items-center justify-between border-b border-slate-100 pb-4 mb-4">
+          <Text className="text-base font-sans-bold text-navy-900">Event Action Logs</Text>
+          <Ionicons name="list-outline" size={18} color="#94a3b8" />
+        </View>
+
+        {/* Filters */}
+        <View className="mb-6 space-y-3">
+          <View className="flex-row flex-wrap gap-2">
+            {PERIODS.map(p => (
+              <Pressable 
+                key={p.value}
+                onPress={() => setPeriod(p.value)}
+                className={`px-3 py-1.5 rounded-full border ${period === p.value ? 'bg-navy-900 border-navy-900' : 'bg-white border-slate-200'}`}
+              >
+                <Text className={`text-[11px] font-sans-medium ${period === p.value ? 'text-white' : 'text-slate-600'}`}>{p.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View className="flex-row flex-wrap gap-2">
+            {STATUSES.map(s => (
+              <Pressable 
+                key={s.value}
+                onPress={() => setStatusFilter(s.value)}
+                className={`px-3 py-1.5 rounded-full border ${statusFilter === s.value ? 'bg-navy-900 border-navy-900' : 'bg-white border-slate-200'}`}
+              >
+                <Text className={`text-[11px] font-sans-medium ${statusFilter === s.value ? 'text-white' : 'text-slate-600'}`}>{s.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {loadingEvents ? (
+          <View className="py-8">
+             <ActivityIndicator size="small" color="#14335A" />
+          </View>
+        ) : (
+          <View className="mt-2">
+            {eventLogs.map((log) => (
+              <View key={log.id} className="border-b border-slate-50 py-4 last:border-0 flex-row items-center justify-between">
+                <View className="flex-1 pr-3">
+                  <View className="flex-row items-start justify-between mb-1">
+                    <Text className="font-sans-bold text-navy-900 text-sm flex-1 pr-2" numberOfLines={1}>{log.name}</Text>
+                    <View className={`px-2 py-0.5 rounded-md ${log.status === 'pending_review' ? 'bg-orange-50' : log.status === 'approved' ? 'bg-sky-50' : 'bg-slate-100'}`}>
+                      <Text className={`text-[9px] font-sans-bold tracking-wider capitalize ${log.status === 'pending_review' ? 'text-[#BA5E12]' : log.status === 'approved' ? 'text-sky-700' : 'text-slate-600'}`}>
+                        {log.status.replace('_', ' ')}
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="flex-row items-center mb-1.5 gap-2">
+                    <Text className="text-[11px] font-sans text-slate-500">Kategori: <Text className="font-sans-medium text-slate-700 capitalize">{log.category}</Text></Text>
+                    <View className={`px-1.5 py-0.5 rounded ${log.priority === 'High' ? 'bg-red-50' : 'bg-slate-100'}`}>
+                       <Text className={`text-[9px] font-sans-semibold ${log.priority === 'High' ? 'text-red-600' : 'text-slate-500'}`}>Prioritas: {log.priority}</Text>
+                    </View>
+                  </View>
+                  <View className="flex-row items-center">
+                    <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                    <Text className="text-[10px] font-sans-medium text-slate-400 ml-1">{new Date(log.time).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                  </View>
+                </View>
+                <View>
+                   <Pressable 
+                     onPress={() => handleAction(log.id, log.status)}
+                     className={`px-3 py-2 rounded-lg ${log.status === 'pending_review' ? 'bg-navy-900' : 'bg-slate-100'}`}
+                   >
+                     <Text className={`text-xs font-sans-semibold ${log.status === 'pending_review' ? 'text-white' : 'text-slate-400'}`}>Aksi</Text>
+                   </Pressable>
+                </View>
+              </View>
+            ))}
+            {eventLogs.length === 0 && (
+              <Text className="text-center text-slate-400 font-sans py-8">Tidak ada data ditemukan</Text>
+            )}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
