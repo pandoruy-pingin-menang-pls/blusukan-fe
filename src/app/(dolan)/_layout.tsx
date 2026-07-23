@@ -11,7 +11,7 @@ export default function DolanLayout() {
 
   return (
     <View className="flex-1 bg-white">
-      <TopBar />
+      {!isHome && <TopBar />}
       <View className="flex-1" style={{ paddingTop: isHome ? 0 : insets.top }}>
         <Slot />
       </View>
