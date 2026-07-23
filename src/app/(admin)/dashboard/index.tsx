@@ -285,7 +285,13 @@ export default function AdminDashboardScreen() {
         </View>
 
         <View className="px-4 mt-8 mb-4">
-          {/* Removed redundant Keluar Akun button since it's now in the header */}
+          <Pressable
+            onPress={handleLogout}
+            className="bg-slate-800 rounded-xl py-4 flex-row justify-center items-center gap-2 shadow-sm"
+          >
+            <Ionicons name="log-out-outline" size={20} color="white" />
+            <Text className="font-sans-bold text-white text-base">Keluar dari Akun</Text>
+          </Pressable>
         </View>
       </Animated.ScrollView>
     </View>

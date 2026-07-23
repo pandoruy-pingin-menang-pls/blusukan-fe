@@ -376,6 +376,22 @@ export default function MyStoreScreen() {
                 </TouchableOpacity>
               </View>
 
+              {/* Logout Button */}
+              <View className="mb-6">
+                <TouchableOpacity
+                  onPress={async () => {
+                    const logoutFn = useAppStore.getState().logout;
+                    await logoutFn();
+                    router.replace("/(auth)/login");
+                  }}
+                  className="bg-slate-800 rounded-xl py-4 flex-row justify-center items-center gap-2 shadow-sm mt-2"
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="log-out-outline" size={20} color="white" />
+                  <Text className="font-sans-bold text-white text-base">Keluar dari Akun</Text>
+                </TouchableOpacity>
+              </View>
+
             </>
           )}
         </View>
