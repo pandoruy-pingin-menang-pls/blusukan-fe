@@ -60,8 +60,8 @@ jobs:
         id: get_version
         run: |
           VERSION=$(node -e "console.log(require('./app.json').expo.version)")
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-          echo "apk_name=blusukan-v$VERSION.apk" >> $GITHUB_OUTPUT
+          echo "version=v$VERSION-build${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "apk_name=blusukan-v$VERSION-build${{ github.run_number }}.apk" >> $GITHUB_OUTPUT
 
       - name: Rename APK dengan versi
         run: mv blusukan.apk ${{ steps.get_version.outputs.apk_name }}
@@ -74,15 +74,13 @@ jobs:
           retention-days: 7
 
       - name: Tampilkan di Halaman Release Utama
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: ${{ steps.get_version.outputs.apk_name }}
-          tag: ${{ steps.get_version.outputs.version }}
-          commit: ${{ github.sha }}
+          files: ${{ steps.get_version.outputs.apk_name }}
+          tag_name: ${{ steps.get_version.outputs.version }}
           name: "Blusukan ${{ steps.get_version.outputs.version }}"
-          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             ## 📱 Blusukan ${{ steps.get_version.outputs.version }}
 
             Silakan download file **.apk** di bawah ini untuk menginstall aplikasi Blusukan di HP Android Anda.
-          allowUpdates: true
+
