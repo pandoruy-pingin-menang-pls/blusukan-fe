@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { 
   View, 
   Text, 
@@ -190,85 +190,103 @@ export default function BakulDashboardScreen() {
 
         <Alert message={errorMsg} type="error" />
 
-        {isLoading ? (
-          <View className="py-20 items-center">
-            <ActivityIndicator size="large" color="#14335A" />
-          </View>
-        ) : (
-          <View className="gap-6 mb-8">
-            {/* Quick Metrics */}
-            <View className="flex-row gap-4">
-              <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
-                <View>
-                  <Ionicons name="fast-food-outline" size={32} color="#22548C" />
-                </View>
-                <View>
-                  <Text className="font-sans-bold text-2xl text-navy-900">{catalogCount}</Text>
-                  <Text className="font-sans text-[11px] text-slate-500">Menu Katalog</Text>
-                </View>
+        <View className="gap-6 mb-8">
+          {/* Quick Metrics */}
+          <View className="flex-row gap-4">
+            <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
+              <View>
+                <Ionicons name="fast-food-outline" size={32} color="#22548C" />
               </View>
-
-              <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
-                <View>
-                  <Ionicons name="ticket-outline" size={32} color="#ea580c" />
-                </View>
-                <View>
-                  <Text className="font-sans-bold text-2xl text-navy-900">{promoCount}</Text>
-                  <Text className="font-sans text-[11px] text-slate-500">Promo Aktif</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Transaction Summary Card */}
-            <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <View className="bg-navy-900">
-                <ImageBackground
-                  source={require("../../../assets/dashboard-batik-overlay.png")}
-                  style={{ paddingHorizontal: 20, paddingVertical: 16 }}
-                  imageStyle={{ opacity: 0.4 }}
-                  resizeMode="cover"
-                >
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="stats-chart" size={20} color="white" />
-                    <Text className="font-sans-bold text-white text-lg flex-1">
-                      Ringkasan Penjualan
-                    </Text>
-                    <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
-                      <Text className="text-white text-xs font-sans-bold capitalize">
-                        Hari Ini
-                      </Text>
-                    </View>
-                  </View>
-                </ImageBackground>
-              </View>
-
-              <View className="p-5">
-                {txSummary ? (
-                  <View className="flex-row justify-between gap-3">
-                    <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
-                      <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
-                        Total Omzet
-                      </Text>
-                      <Text className="font-sans-bold text-orange-600 text-[15px] text-center" numberOfLines={1}>
-                        Rp{txSummary.total_omzet.toLocaleString("id-ID")}
-                      </Text>
-                    </View>
-                    <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
-                      <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
-                        Total Transaksi
-                      </Text>
-                      <Text className="font-sans-bold text-navy-900 text-lg">
-                        {txSummary.total_transaksi}
-                      </Text>
-                    </View>
-                  </View>
+              <View className="flex-1">
+                {isLoading ? (
+                  <PulseView style={{ width: 45, height: 26, backgroundColor: '#cbd5e1', borderRadius: 6, marginBottom: 2 }} />
                 ) : (
-                  <View className="items-center py-4">
-                    <Text className="font-sans text-slate-400 text-sm">Belum ada transaksi hari ini.</Text>
-                  </View>
+                  <Text className="font-sans-bold text-2xl text-navy-900">{catalogCount}</Text>
                 )}
+                <Text className="font-sans text-[11px] text-slate-500">Menu Katalog</Text>
               </View>
             </View>
+
+            <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
+              <View>
+                <Ionicons name="ticket-outline" size={32} color="#ea580c" />
+              </View>
+              <View className="flex-1">
+                {isLoading ? (
+                  <PulseView style={{ width: 45, height: 26, backgroundColor: '#cbd5e1', borderRadius: 6, marginBottom: 2 }} />
+                ) : (
+                  <Text className="font-sans-bold text-2xl text-navy-900">{promoCount}</Text>
+                )}
+                <Text className="font-sans text-[11px] text-slate-500">Promo Aktif</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Transaction Summary Card */}
+          <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <View className="bg-navy-900">
+              <ImageBackground
+                source={require("../../../assets/dashboard-batik-overlay.png")}
+                style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                imageStyle={{ opacity: 0.4 }}
+                resizeMode="cover"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name="stats-chart" size={20} color="white" />
+                  <Text className="font-sans-bold text-white text-lg flex-1">
+                    Ringkasan Penjualan
+                  </Text>
+                  <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
+                    <Text className="text-white text-xs font-sans-bold capitalize">
+                      Hari Ini
+                    </Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </View>
+
+            <View className="p-5">
+              {isLoading ? (
+                <View className="flex-row justify-between gap-3">
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Omzet
+                    </Text>
+                    <PulseView style={{ width: 90, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6, marginTop: 4 }} />
+                  </View>
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Transaksi
+                    </Text>
+                    <PulseView style={{ width: 35, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6, marginTop: 4 }} />
+                  </View>
+                </View>
+              ) : txSummary ? (
+                <View className="flex-row justify-between gap-3">
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Omzet
+                    </Text>
+                    <Text className="font-sans-bold text-orange-600 text-[15px] text-center" numberOfLines={1}>
+                      Rp{txSummary.total_omzet.toLocaleString("id-ID")}
+                    </Text>
+                  </View>
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Transaksi
+                    </Text>
+                    <Text className="font-sans-bold text-navy-900 text-lg">
+                      {txSummary.total_transaksi}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View className="items-center py-4">
+                  <Text className="font-sans text-slate-400 text-sm">Belum ada transaksi hari ini.</Text>
+                </View>
+              )}
+            </View>
+          </View>
 
             {/* Prediction Card */}
             <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -285,87 +303,135 @@ export default function BakulDashboardScreen() {
                     <Text className="font-sans-bold text-white text-lg flex-1">
                       Saran Stok Hari Ini
                     </Text>
-                    {prediction && (
+                    {isLoading ? (
+                      <PulseView style={{ width: 85, height: 24, backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 8 }} />
+                    ) : prediction ? (
                       <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
                         <Text className="text-white text-xs font-sans-bold capitalize">
                           Cuaca: {prediction.weather_condition}
                         </Text>
                       </View>
-                    )}
+                    ) : null}
                   </View>
                 </ImageBackground>
               </View>
 
               <View className="p-5">
-
-              {prediction ? (
-                <View className="gap-5">
-                  {/* AI Text */}
-                  <View className="bg-transparent p-1 relative mb-2">
-                    <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ position: 'absolute', top: 2, left: 0 }} />
-                    <Text className="font-sans text-navy-800 leading-relaxed text-[13px] pl-7">
-                      {prediction.ai_suggestion_text.replace(/\*/g, '•')}
-                    </Text>
-                  </View>
-
-                  {/* JSON Prediction Values */}
-                  <View>
-                    <Text className="font-sans-bold text-slate-700 mb-3 text-sm">
-                      Target Persiapan Stok:
-                    </Text>
-                    <View className="flex-row flex-wrap justify-between gap-y-3">
-                      {Object.entries(prediction.recommended_stock).map(([key, value]) => (
-                        <View key={key} style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
-                          <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
-                            {key.replace(/_/g, " ")}
-                          </Text>
-                          <Text className="font-sans-bold text-orange-600 text-2xl">
-                            {value}
-                          </Text>
-                        </View>
-                      ))}
+                {isLoading ? (
+                  <View className="gap-5">
+                    {/* AI Text Skeleton */}
+                    <View className="bg-transparent p-1 relative mb-2">
+                      <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ position: 'absolute', top: 2, left: 0 }} />
+                      <View className="pl-7 gap-2">
+                        <PulseView style={{ width: '95%', height: 14, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                        <PulseView style={{ width: '70%', height: 14, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                      </View>
+                    </View>
+                    {/* Stock Predictions Skeleton */}
+                    <View>
+                      <PulseView style={{ width: 140, height: 16, backgroundColor: '#cbd5e1', borderRadius: 4, marginBottom: 12 }} />
+                      <View className="flex-row flex-wrap justify-between gap-y-3">
+                        {[1, 2, 3, 4].map((i) => (
+                          <View key={i} style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                            <PulseView style={{ width: 70, height: 12, backgroundColor: '#cbd5e1', borderRadius: 4, marginBottom: 8 }} />
+                            <PulseView style={{ width: 35, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6 }} />
+                          </View>
+                        ))}
+                      </View>
                     </View>
                   </View>
-
-                  {/* Nearby Events */}
-                  {prediction.nearby_events && prediction.nearby_events.length > 0 && (
-                    <View className="mt-2">
-                      <Text className="font-sans-bold text-slate-700 mb-2 text-sm">
-                        Event di Sekitar Anda Hari Ini:
+                ) : prediction ? (
+                  <View className="gap-5">
+                    {/* AI Text */}
+                    <View className="bg-transparent p-1 relative mb-2">
+                      <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ position: 'absolute', top: 2, left: 0 }} />
+                      <Text className="font-sans text-navy-800 leading-relaxed text-[13px] pl-7">
+                        {prediction.ai_suggestion_text.replace(/\*/g, '•')}
                       </Text>
-                      {prediction.nearby_events.map((ev, idx) => (
-                        <View key={idx} className="flex-row items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2">
-                          <View className="mr-2">
-                            <Ionicons name="calendar" size={20} color="#22548C" />
-                          </View>
-                          <View className="flex-1">
-                            <Text className="font-sans-bold text-slate-700 text-[14px]">{ev.name}</Text>
-                            <Text className="font-sans text-slate-500 text-xs mt-0.5 capitalize">
-                              {ev.estimated_attendee_count} Pengunjung • {ev.genre}
+                    </View>
+
+                    {/* JSON Prediction Values */}
+                    <View>
+                      <Text className="font-sans-bold text-slate-700 mb-3 text-sm">
+                        Target Persiapan Stok:
+                      </Text>
+                      <View className="flex-row flex-wrap justify-between gap-y-3">
+                        {Object.entries(prediction.recommended_stock).map(([key, value]) => (
+                          <View key={key} style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                            <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                              {key.replace(/_/g, " ")}
+                            </Text>
+                            <Text className="font-sans-bold text-orange-600 text-2xl">
+                              {value}
                             </Text>
                           </View>
-                        </View>
-                      ))}
+                        ))}
+                      </View>
                     </View>
-                  )}
-                </View>
-              ) : (
-                <View className="items-center py-6 px-4">
-                  <Ionicons name="analytics-outline" size={48} color="#cbd5e1" />
-                  <Text className="font-sans-semibold text-slate-500 mt-4 text-center">
-                    Belum ada rekomendasi stok untuk hari ini.
-                  </Text>
-                  <Text className="font-sans text-slate-400 text-sm mt-1 text-center leading-relaxed">
-                    Sistem akan menghitung otomatis berdasarkan data baseline inventory, cuaca, dan keramaian.
-                  </Text>
-                </View>
-              )}
+
+                    {/* Nearby Events */}
+                    {prediction.nearby_events && prediction.nearby_events.length > 0 && (
+                      <View className="mt-2">
+                        <Text className="font-sans-bold text-slate-700 mb-2 text-sm">
+                          Event di Sekitar Anda Hari Ini:
+                        </Text>
+                        {prediction.nearby_events.map((ev, idx) => (
+                          <View key={idx} className="flex-row items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2">
+                            <View className="mr-2">
+                              <Ionicons name="calendar" size={20} color="#22548C" />
+                            </View>
+                            <View className="flex-1">
+                              <Text className="font-sans-bold text-slate-700 text-[14px]">{ev.name}</Text>
+                              <Text className="font-sans text-slate-500 text-xs mt-0.5 capitalize">
+                                {ev.estimated_attendee_count} Pengunjung • {ev.genre}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View className="items-center py-6 px-4">
+                    <Ionicons name="analytics-outline" size={48} color="#cbd5e1" />
+                    <Text className="font-sans-semibold text-slate-500 mt-4 text-center">
+                      Belum ada rekomendasi stok untuk hari ini.
+                    </Text>
+                    <Text className="font-sans text-slate-400 text-sm mt-1 text-center leading-relaxed">
+                      Sistem akan menghitung otomatis berdasarkan data baseline inventory, cuaca, dan keramaian.
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-          </View>
-        )}
         </View>
       </Animated.ScrollView>
     </View>
   );
+}
+
+function PulseView({ style }: { style?: any }) {
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.7,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.3,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulseAnim]);
+
+  return <Animated.View style={[style, { opacity: pulseAnim }]} />;
 }

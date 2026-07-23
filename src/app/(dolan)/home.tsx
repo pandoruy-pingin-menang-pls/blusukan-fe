@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { View, Text, Animated, Pressable, ScrollView, TouchableOpacity, Image, ActivityIndicator, Dimensions, StyleSheet, ImageBackground } from "react-native";
 import { useAppStore } from "../../store/useAppStore";
 import { router, useFocusEffect } from "expo-router";
@@ -134,12 +134,7 @@ export default function DolanHome() {
           </View>
 
           {/* Content Loading State */}
-          {isLoading ? (
-            <View className="py-20 items-center justify-center">
-              <ActivityIndicator size="large" color="#14335A" />
-            </View>
-          ) : (
-            <View className="mt-[-20px] pb-6">
+          <View className="mt-[-20px] pb-6">
               {/* Quick Action: Cari Event */}
               <TouchableOpacity
                 onPress={() => router.push({ pathname: "/(dolan)/itinerary", params: { search: "Aku lagi mencari event seru dekat sini nih!" } })}
@@ -177,40 +172,48 @@ export default function DolanHome() {
                 </View>
                 
                 <View className="flex-row flex-wrap justify-between gap-y-3">
-                  {[...Array(10)].map((_, index) => {
-                    const randomStampImages = [
-                      require("../../../assets/stamp-batik.png"),
-                      require("../../../assets/stamp-liwet.png"),
-                      require("../../../assets/stamp-sate.png"),
-                      require("../../../assets/stamp-serabi.png")
-                    ];
-                    
-                    if (index === 9) {
-                      const extraCount = Math.max(0, totalStamps - 9);
+                  {isLoading ? (
+                    [...Array(10)].map((_, index) => (
+                      <View key={index} className="w-[18%] aspect-square rounded-full border border-slate-100 items-center justify-center bg-slate-50 overflow-hidden">
+                        <PulseView style={{ width: '80%', height: '80%', borderRadius: 9999, backgroundColor: '#cbd5e1' }} />
+                      </View>
+                    ))
+                  ) : (
+                    [...Array(10)].map((_, index) => {
+                      const randomStampImages = [
+                        require("../../../assets/stamp-batik.png"),
+                        require("../../../assets/stamp-liwet.png"),
+                        require("../../../assets/stamp-sate.png"),
+                        require("../../../assets/stamp-serabi.png")
+                      ];
+                      
+                      if (index === 9) {
+                        const extraCount = Math.max(0, totalStamps - 9);
+                        return (
+                          <View key={index} className="w-[18%] aspect-square rounded-full border-2 border-slate-200 border-dashed items-center justify-center bg-slate-50">
+                            {totalStamps > 9 ? (
+                              <Text className="font-sans-bold text-slate-500 text-xs">+{extraCount}</Text>
+                            ) : (
+                              <Ionicons name="add" size={16} color="#cbd5e1" />
+                            )}
+                          </View>
+                        );
+                      }
+
+                      const hasStamp = index < Math.min(totalStamps, 9);
+                      const randomImg = randomStampImages[index % randomStampImages.length];
+
                       return (
-                        <View key={index} className="w-[18%] aspect-square rounded-full border-2 border-slate-200 border-dashed items-center justify-center bg-slate-50">
-                          {totalStamps > 9 ? (
-                            <Text className="font-sans-bold text-slate-500 text-xs">+{extraCount}</Text>
+                        <View key={index} className="w-[18%] aspect-square rounded-full border-2 border-slate-100 items-center justify-center bg-slate-50 overflow-hidden">
+                          {hasStamp ? (
+                            <Image source={randomImg} style={{ width: '80%', height: '80%' }} resizeMode="contain" />
                           ) : (
-                            <Ionicons name="add" size={16} color="#cbd5e1" />
+                            <View className="w-2 h-2 rounded-full bg-slate-200" />
                           )}
                         </View>
                       );
-                    }
-
-                    const hasStamp = index < Math.min(totalStamps, 9);
-                    const randomImg = randomStampImages[index % randomStampImages.length];
-
-                    return (
-                      <View key={index} className="w-[18%] aspect-square rounded-full border-2 border-slate-100 items-center justify-center bg-slate-50 overflow-hidden">
-                        {hasStamp ? (
-                          <Image source={randomImg} style={{ width: '80%', height: '80%' }} resizeMode="contain" />
-                        ) : (
-                          <View className="w-2 h-2 rounded-full bg-slate-200" />
-                        )}
-                      </View>
-                    );
-                  })}
+                    })
+                  )}
                 </View>
               </View>
 
@@ -295,7 +298,15 @@ export default function DolanHome() {
                     </View>
                     <View className="flex-1">
                       <Text className="font-playfair font-semibold text-navy-900 text-xl">Promo Menunggu</Text>
-                      <Text className="font-sans text-slate-500 text-sm mt-1">Ada <Text className="font-sans-bold text-orange-600">{availablePromos}</Text> promo menarik buatmu</Text>
+                      {isLoading ? (
+                        <View className="flex-row items-center gap-1.5 mt-1">
+                          <Text className="font-sans text-slate-400 text-sm">Ada</Text>
+                          <PulseView style={{ width: 22, height: 16, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                          <Text className="font-sans text-slate-400 text-sm">promo menarik buatmu</Text>
+                        </View>
+                      ) : (
+                        <Text className="font-sans text-slate-500 text-sm mt-1">Ada <Text className="font-sans-bold text-orange-600">{availablePromos}</Text> promo menarik buatmu</Text>
+                      )}
                     </View>
                   </View>
                   <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
@@ -328,7 +339,15 @@ export default function DolanHome() {
                     </View>
                     <View className="flex-1">
                       <Text className="font-playfair font-semibold text-navy-900 text-xl">Riwayat Perjalanan</Text>
-                      <Text className="font-sans text-slate-500 text-sm mt-1">Ada <Text className="font-sans-bold text-orange-600">{itinerariesCount}</Text> riwayat petualangan serumu</Text>
+                      {isLoading ? (
+                        <View className="flex-row items-center gap-1.5 mt-1">
+                          <Text className="font-sans text-slate-400 text-sm">Ada</Text>
+                          <PulseView style={{ width: 22, height: 16, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                          <Text className="font-sans text-slate-400 text-sm">riwayat petualangan serumu</Text>
+                        </View>
+                      ) : (
+                        <Text className="font-sans text-slate-500 text-sm mt-1">Ada <Text className="font-sans-bold text-orange-600">{itinerariesCount}</Text> riwayat petualangan serumu</Text>
+                      )}
                     </View>
                   </View>
                   <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
@@ -417,9 +436,33 @@ export default function DolanHome() {
                 </View>
               </TouchableOpacity>
             </View>
-          )}
-        </View>
+          </View>
       </Animated.ScrollView>
     </ImageBackground>
   );
+}
+
+function PulseView({ style }: { style?: any }) {
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.7,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.3,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulseAnim]);
+
+  return <Animated.View style={[style, { opacity: pulseAnim }]} />;
 }
