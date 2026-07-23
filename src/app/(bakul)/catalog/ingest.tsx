@@ -261,7 +261,7 @@ export default function CatalogIngestScreen() {
             Pindai Menu
           </Text>
           <Text className="text-[15px] font-sans text-ink-soft mb-6">
-            Otomatis deteksi daftar menu dan harga dari foto menggunakan AI.
+            Otomatis deteksi daftar menu dan harga dari foto menggunakan Mblus.
           </Text>
         </View>
 
@@ -312,7 +312,7 @@ export default function CatalogIngestScreen() {
           <ActivityIndicator size="large" color="#22548C" />
           <Text className="font-sans-bold text-navy-900 mt-6 text-lg">Menganalisis Foto...</Text>
           <Text className="font-sans text-ink-soft mt-2 text-center px-4">
-            AI sedang membaca nama dan harga menu dari gambar. Ini mungkin memakan waktu beberapa detik.
+            Mblus sedang membaca nama dan harga menu dari gambar. Ini mungkin memakan waktu beberapa detik.
           </Text>
         </View>
 

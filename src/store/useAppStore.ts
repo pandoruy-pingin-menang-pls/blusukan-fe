@@ -149,18 +149,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       const currentUser = get().user;
       const updatedUser = currentUser ? { ...currentUser, role: "pedagang", has_merchant_profile: true } as User : null;
       
-      if (data?.access_token) {
-        await saveToken("access_token", data.access_token);
+      if (data?.tokens?.access_token) {
+        await saveToken("access_token", data.tokens.access_token);
       }
-      if (data?.refresh_token) {
-        await saveToken("refresh_token", data.refresh_token);
+      if (data?.tokens?.refresh_token) {
+        await saveToken("refresh_token", data.tokens.refresh_token);
       }
       
       if (updatedUser) {
         await saveToken("user_data", JSON.stringify(updatedUser));
       }
       
-      set({ user: updatedUser, isLoggedIn: true, merchant_id: data.id });
+      set({ user: updatedUser, isLoggedIn: true, merchant_id: data?.merchant?.id });
     } catch (error) {
       console.error("Register Merchant API Error:", error);
       throw error;

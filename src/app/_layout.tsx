@@ -65,20 +65,32 @@ export default function RootLayout() {
         router.replace("/(auth)/login");
       }
     } else if (user) {
-      // If logged in, enforce role restrictions
+      if (user.role === "pedagang" && !user.has_merchant_profile) {
+        // Always redirect pedagang to onboarding if they haven't set up their store
+        if (segments.join("/") !== "(auth)/register-merchant") {
+          router.replace("/(auth)/register-merchant");
+        }
+        return;
+      }
+
       if (user.role === "admin" && !inAdminGroup) {
-        router.replace("/(admin)");
+        router.replace("/(admin)/dashboard");
       } else if (user.role === "pedagang" && inAdminGroup) {
-        router.replace("/(bakul)");
+        router.replace("/(bakul)/dashboard");
       } else if (user.role === "wisatawan" && inAdminGroup) {
-        router.replace("/(dolan)");
+        router.replace("/(dolan)/home");
       }
       
       // Also if they are in auth group but already logged in
       if (inAuthGroup) {
-        if (user.role === "admin") router.replace("/(admin)");
-        else if (user.role === "pedagang") router.replace("/(bakul)");
-        else router.replace("/(dolan)");
+        // Allow access to role-selection and register-merchant for onboarding flows
+        if (segments[1] === "register-merchant" || segments[1] === "role-selection") {
+          return;
+        }
+        
+        if (user.role === "admin") router.replace("/(admin)/dashboard");
+        else if (user.role === "pedagang") router.replace("/(bakul)/dashboard");
+        else router.replace("/(dolan)/home");
       }
     }
   }, [isLoggedIn, user, segments, isLoadingAuth]);
