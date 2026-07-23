@@ -9,7 +9,6 @@ type NavItem = { href: string; icon: string; label: string };
 const DOLAN_ITEMS: NavItem[] = [
   { href: "/(dolan)/home", icon: "house", label: "Beranda" },
   { href: "/(dolan)/itinerary", icon: "map", label: "Rute" },
-  { href: "/(dolan)/payment", icon: "qrcode", label: "Bayar" },
   { href: "/(dolan)/stamps", icon: "stamp", label: "Stempel" },
   { href: "/(dolan)/profile", icon: "user", label: "Profil" },
 ];

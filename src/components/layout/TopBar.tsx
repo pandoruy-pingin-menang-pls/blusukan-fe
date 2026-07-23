@@ -1,37 +1,43 @@
 import { View, Text, Pressable } from "react-native";
-import { useRouter, useSegments } from "expo-router";
-import { FontAwesome6 } from "@expo/vector-icons";
+import { useRouter, usePathname } from "expo-router";
+import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/store/useAppStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function TopBar() {
-  const { user } = useAppStore();
+  const { user, logout } = useAppStore();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const initials = user?.full_name
-    ? user.full_name.trim().split(/\s+/).slice(0, 2).map((w: string) => w[0]).join("").toUpperCase()
-    : "?";
+  if (pathname !== "/(dolan)/home" && pathname !== "/(bakul)/dashboard" && pathname !== "/home" && pathname !== "/dashboard") {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
+
+  const name = user?.full_name?.split(" ")[0] || "";
 
   return (
     <View 
-      className="px-5 pb-3.5 border-b border-line"
+      className="absolute top-0 left-0 right-0 z-50 px-5 pb-3.5"
       style={{ paddingTop: Math.max(insets.top, 50) }}
     >
-      <View className="flex-row items-center justify-between mb-3.5">
-        <View className="flex-row items-center gap-2">
-          <View className="w-[30px] h-[30px] rounded-lg bg-navy-800 items-center justify-center">
-            <Text className="text-white font-display-extra text-sm">B</Text>
-          </View>
-          <Text className="font-display text-navy-900 text-base">Blusukan</Text>
+      <View className="flex-row items-center justify-between">
+        <View className="flex-col justify-center">
+          <Text className="font-sans text-navy-900 text-sm">Sugeng rawuh,</Text>
+          <Text className="font-playfair font-semibold text-navy-900 text-lg">{name}</Text>
         </View>
-        <View className="flex-row items-center gap-3">
-          <FontAwesome6 name="bell" size={16} color="#5B6572" />
-          <View className="w-[30px] h-[30px] rounded-full bg-navy-50 border border-line items-center justify-center">
-            <Text className="text-navy-800 font-sans-bold text-xs">{initials}</Text>
-          </View>
-        </View>
+        <Pressable 
+          onPress={handleLogout} 
+          className="flex-row items-center justify-center w-10 h-10 bg-red-50/80 rounded-full"
+        >
+          <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+        </Pressable>
       </View>
-
     </View>
   );
 }
