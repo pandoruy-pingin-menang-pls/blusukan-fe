@@ -142,9 +142,9 @@ export default function DolanHome() {
 
           {/* Content Loading State */}
           <View className="mt-[-20px] pb-6">
-              {/* Quick Action: Cari Event */}
+              {/* Quick Action: Rencana Tujuan Dolan */}
               <TouchableOpacity
-                onPress={() => router.push({ pathname: "/(dolan)/itinerary", params: { search: "Aku lagi mencari event seru dekat sini nih!" } })}
+                onPress={() => router.push({ pathname: "/(dolan)/itinerary", params: { search: "Aku ingin merencanakan rute dolan seru untuk keliling kota Solo hari ini" } })}
                 activeOpacity={0.8}
                 className="bg-white rounded-[24px] shadow-sm border border-slate-100 mb-6 overflow-hidden"
               >
@@ -158,11 +158,11 @@ export default function DolanHome() {
                 <View className="p-5 flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1 mr-4">
                     <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center mr-4">
-                      <Ionicons name="calendar-outline" size={24} color="#22548C" />
+                      <Ionicons name="compass-outline" size={24} color="#22548C" />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-playfair font-semibold text-navy-900 text-xl">Cari event seru</Text>
-                      <Text className="font-sans text-slate-500 text-sm mt-1">Temukan acara menarik di sekitarmu</Text>
+                      <Text className="font-playfair font-semibold text-navy-900 text-xl">Rencana Tujuan Dolan</Text>
+                      <Text className="font-sans text-slate-500 text-sm mt-1">Tentukan tempat dolan terbaik untuk dikunjungi</Text>
                     </View>
                   </View>
                   <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
