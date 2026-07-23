@@ -125,8 +125,8 @@ export default function BakulDashboardScreen() {
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-col justify-center">
-            <Text className="font-sans text-white text-sm">Sugeng rawuh,</Text>
-            <Text className="font-playfair font-semibold text-white text-lg">{name}</Text>
+            <Text className="font-sans text-navy-900 text-sm">Sugeng rawuh,</Text>
+            <Text className="font-playfair font-semibold text-navy-900 text-lg">{name}</Text>
           </View>
           <Pressable 
             onPress={handleLogout} 
@@ -149,7 +149,7 @@ export default function BakulDashboardScreen() {
       >
         {/* Background shape */}
         <View 
-          className="absolute top-0 w-[150%] left-[-25%] h-64 overflow-hidden" 
+          className="absolute top-0 w-[150%] left-[-25%] h-48 overflow-hidden" 
           style={{ borderBottomLeftRadius: 300, borderBottomRightRadius: 300 }}
         >
           <LinearGradient
@@ -162,10 +162,10 @@ export default function BakulDashboardScreen() {
 
         {/* Header Hero Section */}
         <View 
-          className="px-5 pb-6 mb-6"
+          className="px-5 pb-2 mb-2"
           style={{ paddingTop: Math.max(insets.top, 50) }}
         >
-          <View className="flex-row items-center justify-between mb-8">
+          <View className="flex-row items-center justify-between mb-3">
             <View className="flex-col justify-center">
               <Text className="font-sans text-white text-sm">Sugeng rawuh,</Text>
               <Text className="font-playfair font-semibold text-white text-2xl">{name}</Text>
@@ -177,10 +177,6 @@ export default function BakulDashboardScreen() {
               <Ionicons name="log-out-outline" size={20} color="white" />
             </Pressable>
           </View>
-
-          <Text className="text-[32px] font-playfair font-semibold tracking-wide text-white">
-            Siap jualan hari ini?
-          </Text>
         </View>
         <View className="px-5">
 
@@ -216,22 +212,32 @@ export default function BakulDashboardScreen() {
             </View>
 
             {/* Prediction Card */}
-            <View className="bg-white/95 rounded-3xl p-5 border border-slate-200 shadow-sm">
-              <View className="flex-row items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                <View>
-                  <Ionicons name="sparkles" size={24} color="#ea580c" />
-                </View>
-                <Text className="font-sans-bold text-navy-900 text-lg flex-1">
-                  Saran Stok Hari Ini
-                </Text>
-                {prediction && (
-                  <View className="bg-navy-50 px-3 py-1.5 rounded-xl border border-navy-100">
-                    <Text className="text-navy-800 text-xs font-sans-bold capitalize">
-                      Cuaca: {prediction.weather_condition}
+            <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              {/* Card Header with Navy and Batik */}
+              <View className="bg-navy-900">
+                <ImageBackground
+                  source={require("../../../assets/dashboard-batik-overlay.png")}
+                  style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                  imageStyle={{ opacity: 0.4 }}
+                  resizeMode="cover"
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="sparkles" size={20} color="white" />
+                    <Text className="font-sans-bold text-white text-lg flex-1">
+                      Saran Stok Hari Ini
                     </Text>
+                    {prediction && (
+                      <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
+                        <Text className="text-white text-xs font-sans-bold capitalize">
+                          Cuaca: {prediction.weather_condition}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                )}
+                </ImageBackground>
               </View>
+
+              <View className="p-5">
 
               {prediction ? (
                 <View className="gap-5">
@@ -296,6 +302,7 @@ export default function BakulDashboardScreen() {
                 </View>
               )}
             </View>
+          </View>
           </View>
         )}
         </View>
