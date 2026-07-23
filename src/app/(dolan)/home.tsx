@@ -29,6 +29,12 @@ export default function DolanHome() {
     extrapolate: "clamp",
   });
 
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [50, 100],
+    outputRange: [-150, 0],
+    extrapolate: "clamp",
+  });
+
   const [totalStamps, setTotalStamps] = useState(0);
   const [availablePromos, setAvailablePromos] = useState(0);
   const [itinerariesCount, setItinerariesCount] = useState(0);
@@ -76,7 +82,8 @@ export default function DolanHome() {
         className="absolute top-0 left-0 right-0 z-50 px-5 pb-3.5 bg-white border-b border-line shadow-sm"
         style={{ 
           paddingTop: Math.max(insets.top, 50),
-          opacity: headerOpacity 
+          opacity: headerOpacity,
+          transform: [{ translateY: headerTranslateY }]
         }}
       >
         <View className="flex-row items-center justify-between">

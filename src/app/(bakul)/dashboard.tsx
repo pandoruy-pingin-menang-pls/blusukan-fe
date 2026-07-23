@@ -53,6 +53,12 @@ export default function BakulDashboardScreen() {
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
+
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [50, 100],
+    outputRange: [-150, 0],
+    extrapolate: "clamp",
+  });
   
   const [merchantData, setMerchantData] = useState<any>(null);
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
@@ -128,7 +134,8 @@ export default function BakulDashboardScreen() {
         className="absolute top-0 left-0 right-0 z-50 px-5 pb-3.5 bg-white border-b border-line shadow-sm"
         style={{ 
           paddingTop: Math.max(insets.top, 50),
-          opacity: headerOpacity 
+          opacity: headerOpacity,
+          transform: [{ translateY: headerTranslateY }]
         }}
       >
         <View className="flex-row items-center justify-between">

@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
+import "../services/apiClient";
 import {
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
