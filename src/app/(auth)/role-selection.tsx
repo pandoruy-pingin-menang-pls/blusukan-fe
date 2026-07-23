@@ -154,7 +154,7 @@ export default function RoleSelectionScreen() {
           >
             <View className="flex-col items-center p-6">
               <Image
-                source={require("../../../assets/mblus/adventure.png")}
+                source={require("../../../assets/mblus/Adventure.png")}
                 style={{ width: 120, height: 120, marginBottom: 16 }}
                 resizeMode="contain"
               />
