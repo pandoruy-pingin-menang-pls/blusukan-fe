@@ -18,16 +18,17 @@ import Animated, {
   interpolateColor,
   useSharedValue,
 } from "react-native-reanimated";
+import { useAppStore } from "../store/useAppStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const DATA = [
-  { id: "0" }, 
+  { id: "0" },
   {
     id: "1",
     title: "Ayo Dolan Bareng Blusukan!",
     desc: "Jelajahi tempat-tempat seru dan temukan hidden gems di sekitarmu.",
-    image: require("../../assets/mblus/adventure.png"),
+    image: require("../../assets/mblus/Adventure.png"),
   },
   {
     id: "2",
@@ -80,6 +81,7 @@ const ProgressBar = () => {
 export const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+  const { isLoggedIn, user } = useAppStore();
 
   useEffect(() => {
     if (currentStep === 0) {
@@ -115,11 +117,21 @@ export const Onboarding = () => {
   };
 
   const finishOnboarding = () => {
-    router.replace("/(auth)/login");
+    if (isLoggedIn) {
+      if (user?.role === "pedagang") {
+        router.replace("/(bakul)/dashboard");
+      } else if (user?.role === "wisatawan") {
+        router.replace("/(dolan)/home");
+      } else {
+        router.replace("/(auth)/role-selection");
+      }
+    } else {
+      router.replace("/(auth)/login");
+    }
   };
 
   return (
-    <LinearGradient 
+    <LinearGradient
       colors={["#F4E9DA", "#F4E9DA", "#EEF3F9"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0.8, y: 1 }}
@@ -170,13 +182,13 @@ export const Onboarding = () => {
             >
               <Image
                 source={item.image}
-                style={{ width: SCREEN_WIDTH * 0.8, height: SCREEN_WIDTH * 0.8 }}
+                style={{ width: SCREEN_WIDTH * 0.5, height: SCREEN_WIDTH * 0.5 }}
                 resizeMode="contain"
                 accessibilityLabel={`Ilustrasi ${item.title}`}
                 className="mb-8"
               />
-              <Text 
-                style={{ fontFamily: 'PlayfairDisplay_700Bold' }} 
+              <Text
+                style={{ fontFamily: 'PlayfairDisplay_700Bold' }}
                 className="text-4xl text-navy-900 text-center mb-4"
               >
                 {item.title}

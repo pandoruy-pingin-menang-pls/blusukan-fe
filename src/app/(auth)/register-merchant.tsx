@@ -8,6 +8,7 @@ import {
   ScrollView,
   ImageBackground,
   StyleSheet,
+  Switch,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../store/useAppStore";
@@ -15,7 +16,8 @@ import { Button } from "../../components/ui/Button";
 import { Alert } from "../../components/ui/Alert";
 import { ConfirmationModal } from "../../components/ui/ConfirmationModal";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
+import { WebView } from "react-native-webview";
 
 // ─── IconInput (sama seperti di Login) ─────────────────────────────────────
 // Catatan: kalau di project-mu IconInput belum diekstrak jadi komponen
@@ -65,9 +67,13 @@ export default function RegisterMerchantScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState("");
 
-  // ── State baru untuk modal konfirmasi ────────────────────────────────────
+  // ── State baru untuk modal konfirmasi dan form map ───────────────────────
   const [showModal, setShowModal] = useState(false);
   const [tempStoreName, setTempStoreName] = useState("");
+  const [latitude, setLatitude] = useState("-7.5666");
+  const [longitude, setLongitude] = useState("110.8283");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isRedemptionPartner, setIsRedemptionPartner] = useState(false);
 
   const registerMerchant = useAppStore((state) => state.registerMerchant);
   const user = useAppStore((state) => state.user);
@@ -101,10 +107,11 @@ export default function RegisterMerchantScreen() {
         description,
         category,
         address,
-        latitude: -7.250445, // Dummy default
-        longitude: 112.768845,
+        latitude: latitude ? parseFloat(latitude) : undefined,
+        longitude: longitude ? parseFloat(longitude) : undefined,
+        is_redemption_partner: isRedemptionPartner,
       });
-      router.replace("/(bakul)/home");
+      router.replace("/(bakul)/dashboard");
     } catch (error: any) {
       setShowModal(false);
       if (error.response?.status === 422) {
@@ -239,32 +246,40 @@ export default function RegisterMerchantScreen() {
             ) : null}
           </View>
 
-          <View>
+          <View className="mb-4">
             <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">
               Kategori
             </Text>
-              {CATEGORIES.map((cat) => {
-                const isSelected = category === cat.value;
-                return (
-                  <Pressable
-                    key={cat.value}
-                    onPress={() => setCategory(cat.value)}
-                    className={`px-4 py-2.5 rounded-full border-[1.5px] ${
-                      isSelected
-                        ? "bg-navy-800 border-navy-800"
-                        : "bg-white border-line"
-                    }`}
-                  >
-                    <Text
-                      className={`font-sans-medium ${
-                        isSelected ? "text-white" : "text-ink-soft"
-                      }`}
+            <View className="relative">
+              <Pressable 
+                onPress={() => setShowDropdown(!showDropdown)}
+                className="bg-white rounded-btn px-4 py-3.5 border-[1.5px] border-line flex-row justify-between items-center"
+              >
+                <Text className="font-sans text-ink capitalize">
+                  {CATEGORIES.find(c => c.value === category)?.label || category}
+                </Text>
+                <FontAwesome6 name={showDropdown ? "chevron-up" : "chevron-down"} size={14} color="#8A93A0" />
+              </Pressable>
+              
+              {showDropdown && (
+                <View className="bg-white border-[1.5px] border-line rounded-xl mt-2 overflow-hidden">
+                  {CATEGORIES.map((cat, idx) => (
+                    <Pressable
+                      key={cat.value}
+                      onPress={() => {
+                        setCategory(cat.value);
+                        setShowDropdown(false);
+                      }}
+                      className={`px-4 py-3.5 ${idx !== CATEGORIES.length - 1 ? 'border-b border-line' : ''} ${category === cat.value ? 'bg-navy-50' : ''}`}
                     >
-                      {cat.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+                      <Text className={`font-sans ${category === cat.value ? 'text-navy-900 font-sans-semibold' : 'text-ink-soft'}`}>
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
             {errors.category ? (
               <Text className="text-danger font-sans text-xs mt-1">
                 {errors.category}
@@ -274,11 +289,11 @@ export default function RegisterMerchantScreen() {
 
           <View>
             <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">
-              Alamat
+              Alamat Lengkap
             </Text>
             <IconInput
               icon="location-outline"
-              placeholder="Alamat Lengkap"
+              placeholder="Misal: Jl. Slamet Riyadi No. 1"
               value={address}
               onChangeText={setAddress}
               editable={!isLoading}
@@ -289,6 +304,144 @@ export default function RegisterMerchantScreen() {
               </Text>
             ) : null}
           </View>
+
+          <View>
+            <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">
+              Pilih Lokasi di Peta
+            </Text>
+            <View className="h-64 w-full rounded-2xl overflow-hidden mb-2 border-[1.5px] border-line">
+              <WebView
+                source={{
+                  html: `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+                      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                      <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+                      <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+                      <style>
+                        body { padding: 0; margin: 0; }
+                        html, body, #map { height: 100%; width: 100%; }
+                        .leaflet-control-attribution { display: none !important; }
+                      </style>
+                    </head>
+                    <body>
+                      <div id="map"></div>
+                      <script>
+                        var lat = ${latitude || -7.5666};
+                        var lng = ${longitude || 110.8283};
+                        var map = L.map('map', { zoomControl: false }).setView([lat, lng], 14);
+                        
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                          maxZoom: 19
+                        }).addTo(map);
+
+                        var marker = L.marker([lat, lng]).addTo(map);
+
+                        var geocoder = L.Control.geocoder({
+                          defaultMarkGeocode: false,
+                          placeholder: "Cari jalan atau tempat..."
+                        })
+                        .on('markgeocode', function(e) {
+                          var latlng = e.geocode.center;
+                          map.setView(latlng, 16);
+                          marker.setLatLng(latlng);
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            lat: latlng.lat,
+                            lng: latlng.lng,
+                            name: e.geocode.name
+                          }));
+                        })
+                        .addTo(map);
+
+                        L.control.locate({
+                          position: 'topleft',
+                          strings: { title: "Ke Lokasi Saya" },
+                          locateOptions: { enableHighAccuracy: true }
+                        }).addTo(map);
+
+                        map.on('locationfound', function(e) {
+                          marker.setLatLng(e.latlng);
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            lat: e.latlng.lat,
+                            lng: e.latlng.lng,
+                            name: "Lokasi Saat Ini"
+                          }));
+                        });
+
+                        map.on('click', function(e) {
+                          marker.setLatLng(e.latlng);
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            lat: e.latlng.lat,
+                            lng: e.latlng.lng
+                          }));
+                        });
+                      </script>
+                    </body>
+                    </html>
+                  `,
+                  baseUrl: "https://localhost"
+                }}
+                onMessage={(event) => {
+                  try {
+                    const data = JSON.parse(event.nativeEvent.data);
+                    setLatitude(data.lat.toString());
+                    setLongitude(data.lng.toString());
+                    if (data.name && !address) {
+                      setAddress(data.name);
+                    }
+                  } catch (e) {}
+                }}
+                geolocationEnabled={true}
+                scrollEnabled={false}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">Latitude</Text>
+              <TextInput
+                className="bg-white rounded-btn px-4 py-3.5 font-sans text-ink border-[1.5px] border-line"
+                value={latitude}
+                onChangeText={setLatitude}
+                keyboardType="numeric"
+                placeholder="-7.5666"
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-ink-dark font-sans-semibold mb-2 ml-1">Longitude</Text>
+              <TextInput
+                className="bg-white rounded-btn px-4 py-3.5 font-sans text-ink border-[1.5px] border-line"
+                value={longitude}
+                onChangeText={setLongitude}
+                keyboardType="numeric"
+                placeholder="110.8283"
+              />
+            </View>
+          </View>
+        </View>
+
+        <View className="mb-6 bg-orange-50/50 p-4 rounded-2xl border border-orange-100/50">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-2 flex-1">
+              <Ionicons name="game-controller" size={20} color="#ea580c" />
+              <Text className="text-ink-dark font-sans-bold text-base">Redemption Partner</Text>
+            </View>
+            <Switch 
+              value={isRedemptionPartner}
+              onValueChange={setIsRedemptionPartner}
+              trackColor={{ false: "#cbd5e1", true: "#f97316" }}
+              thumbColor="#ffffff"
+            />
+          </View>
+          <Text className="text-ink-soft font-sans text-sm leading-relaxed">
+            Aktifkan opsi ini jika Anda bersedia menjadi redemption partner. Selain dapat membuat promo gamifikasi, toko Anda akan mendapatkan prioritas (multiplier) dalam rekomendasi AI kepada turis.
+          </Text>
         </View>
 
         <TouchableOpacity

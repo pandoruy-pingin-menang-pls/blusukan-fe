@@ -1,8 +1,444 @@
-import { View, Text } from "react-native";
-export default function BakulDashboard() {
+import { useState, useCallback, useRef, useEffect } from "react";
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  ImageBackground, 
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+  Animated,
+  Pressable
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect, router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppStore } from "../../store/useAppStore";
+import apiClient from "../../services/apiClient";
+import { Alert } from "../../components/ui/Alert";
+import { Button } from "../../components/ui/Button";
+
+type NearbyEvent = {
+  name: string;
+  estimated_attendee_count: number;
+  genre: string;
+};
+
+type PredictionData = {
+  id: string;
+  generated_for_date: string;
+  weather_condition: string;
+  nearby_events: NearbyEvent[];
+  recommended_stock: Record<string, number>;
+  ai_suggestion_text: string;
+};
+
+export default function BakulDashboardScreen() {
+  const merchant_id = useAppStore(state => state.merchant_id);
+  const { user, logout } = useAppStore();
+  const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
+  
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
+
+  const name = user?.full_name?.split(" ")[0] || "";
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [50, 100],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [50, 100],
+    outputRange: [-150, 0],
+    extrapolate: "clamp",
+  });
+  
+  const [merchantData, setMerchantData] = useState<any>(null);
+  const [prediction, setPrediction] = useState<PredictionData | null>(null);
+  const [catalogCount, setCatalogCount] = useState<number>(0);
+  const [promoCount, setPromoCount] = useState<number>(0);
+  const [txSummary, setTxSummary] = useState<{ total_omzet: number; total_transaksi: number } | null>(null);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const fetchData = async () => {
+    setErrorMsg("");
+    try {
+      // 1. Fetch Merchant Info
+      const merchantRes = await apiClient.get("/api/merchants/me");
+      setMerchantData(merchantRes.data);
+      
+      // 2. Fetch Prediction if merchant_id is present
+      if (merchant_id || merchantRes.data?.id) {
+        const idToUse = merchant_id || merchantRes.data.id;
+        try {
+          const predRes = await apiClient.get(`/api/merchants/${idToUse}/inventory-recommendations/today`);
+          setPrediction(predRes.data);
+        } catch (predErr: any) {
+          if (predErr.response?.status === 404) {
+            setPrediction(null);
+          } else {
+            console.error("Gagal mengambil prediksi:", predErr);
+          }
+        }
+
+        try {
+          const summaryRes = await apiClient.get(`/api/merchants/${idToUse}/transactions/summary`);
+          setTxSummary(summaryRes.data);
+        } catch (summaryErr) {
+          console.error("Gagal mengambil summary transaksi:", summaryErr);
+        }
+
+        try {
+          const [catalogRes, promoRes] = await Promise.all([
+            apiClient.get(`/api/merchants/${idToUse}/catalog`),
+            apiClient.get(`/api/merchants/${idToUse}/promos`)
+          ]);
+          setCatalogCount(catalogRes.data?.length || 0);
+          setPromoCount(promoRes.data?.filter((p: any) => p.is_active)?.length || 0);
+        } catch (e) {
+          console.error("Gagal load metrics:", e);
+        }
+      }
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.detail || "Gagal memuat data dashboard.");
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLoading(true);
+      fetchData().finally(() => setIsLoading(false));
+    }, [merchant_id])
+  );
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text>Bakul Dashboard (placeholder)</Text>
+    <View className="flex-1 bg-slate-50">
+      {/* Sticky Top Bar (Fades in) */}
+      <Animated.View 
+        className="absolute top-0 left-0 right-0 z-50 px-5 pb-3.5 bg-white border-b border-line shadow-sm"
+        style={{ 
+          paddingTop: Math.max(insets.top, 50),
+          opacity: headerOpacity,
+          transform: [{ translateY: headerTranslateY }]
+        }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="flex-col justify-center">
+            <Text className="font-sans text-navy-900 text-sm">Sugeng rawuh,</Text>
+            <Text className="font-playfair font-semibold text-navy-900 text-lg">{name}</Text>
+          </View>
+          <Pressable 
+            onPress={handleLogout} 
+            className="flex-row items-center justify-center w-10 h-10 bg-red-50/80 rounded-full"
+          >
+            <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+          </Pressable>
+        </View>
+      </Animated.View>
+
+      <Animated.ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#14335A"]} />}
+      >
+        {/* Background shape */}
+        <View 
+          className="absolute top-0 w-[150%] left-[-25%] h-48 overflow-hidden" 
+          style={{ borderBottomLeftRadius: 300, borderBottomRightRadius: 300 }}
+        >
+          <LinearGradient
+            colors={["#EA580C", "#9A3412"]} // Orange linear gradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ flex: 1 }}
+          />
+        </View>
+
+        {/* Header Hero Section */}
+        <View 
+          className="px-5 pb-2 mb-2"
+          style={{ paddingTop: Math.max(insets.top, 50) }}
+        >
+          <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-col justify-center">
+              <Text className="font-sans text-white text-sm">Sugeng rawuh,</Text>
+              <Text className="font-playfair font-semibold text-white text-2xl">{name}</Text>
+            </View>
+            <Pressable 
+              onPress={handleLogout} 
+              className="flex-row items-center justify-center w-10 h-10 bg-white/20 rounded-full"
+            >
+              <Ionicons name="log-out-outline" size={20} color="white" />
+            </Pressable>
+          </View>
+        </View>
+        <View className="px-5">
+
+        <Alert message={errorMsg} type="error" />
+
+        <View className="gap-6 mb-8">
+          {/* Quick Metrics */}
+          <View className="flex-row gap-4">
+            <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
+              <View>
+                <Ionicons name="fast-food-outline" size={32} color="#22548C" />
+              </View>
+              <View className="flex-1">
+                {isLoading ? (
+                  <PulseView style={{ width: 45, height: 26, backgroundColor: '#cbd5e1', borderRadius: 6, marginBottom: 2 }} />
+                ) : (
+                  <Text className="font-sans-bold text-2xl text-navy-900">{catalogCount}</Text>
+                )}
+                <Text className="font-sans text-[11px] text-slate-500">Menu Katalog</Text>
+              </View>
+            </View>
+
+            <View className="flex-1 bg-white/95 rounded-3xl p-4 border border-slate-200 shadow-sm flex-row items-center gap-3">
+              <View>
+                <Ionicons name="ticket-outline" size={32} color="#ea580c" />
+              </View>
+              <View className="flex-1">
+                {isLoading ? (
+                  <PulseView style={{ width: 45, height: 26, backgroundColor: '#cbd5e1', borderRadius: 6, marginBottom: 2 }} />
+                ) : (
+                  <Text className="font-sans-bold text-2xl text-navy-900">{promoCount}</Text>
+                )}
+                <Text className="font-sans text-[11px] text-slate-500">Promo Aktif</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Transaction Summary Card */}
+          <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <View className="bg-navy-900">
+              <ImageBackground
+                source={require("../../../assets/dashboard-batik-overlay.png")}
+                style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                imageStyle={{ opacity: 0.4 }}
+                resizeMode="cover"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name="stats-chart" size={20} color="white" />
+                  <Text className="font-sans-bold text-white text-lg flex-1">
+                    Ringkasan Penjualan
+                  </Text>
+                  <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
+                    <Text className="text-white text-xs font-sans-bold capitalize">
+                      Hari Ini
+                    </Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </View>
+
+            <View className="p-5">
+              {isLoading ? (
+                <View className="flex-row justify-between gap-3">
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Omzet
+                    </Text>
+                    <PulseView style={{ width: 90, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6, marginTop: 4 }} />
+                  </View>
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Transaksi
+                    </Text>
+                    <PulseView style={{ width: 35, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6, marginTop: 4 }} />
+                  </View>
+                </View>
+              ) : txSummary ? (
+                <View className="flex-row justify-between gap-3">
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Omzet
+                    </Text>
+                    <Text className="font-sans-bold text-orange-600 text-[15px] text-center" numberOfLines={1}>
+                      Rp{txSummary.total_omzet.toLocaleString("id-ID")}
+                    </Text>
+                  </View>
+                  <View style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                    <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                      Total Transaksi
+                    </Text>
+                    <Text className="font-sans-bold text-navy-900 text-lg">
+                      {txSummary.total_transaksi}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View className="items-center py-4">
+                  <Text className="font-sans text-slate-400 text-sm">Belum ada transaksi hari ini.</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+            {/* Prediction Card */}
+            <View className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              {/* Card Header with Navy and Batik */}
+              <View className="bg-navy-900">
+                <ImageBackground
+                  source={require("../../../assets/dashboard-batik-overlay.png")}
+                  style={{ paddingHorizontal: 20, paddingVertical: 16 }}
+                  imageStyle={{ opacity: 0.4 }}
+                  resizeMode="cover"
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="sparkles" size={20} color="white" />
+                    <Text className="font-sans-bold text-white text-lg flex-1">
+                      Saran Stok Hari Ini
+                    </Text>
+                    {isLoading ? (
+                      <PulseView style={{ width: 85, height: 24, backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 8 }} />
+                    ) : prediction ? (
+                      <View className="bg-white/15 px-3 py-1.5 rounded-xl border border-white/20">
+                        <Text className="text-white text-xs font-sans-bold capitalize">
+                          Cuaca: {prediction.weather_condition}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </ImageBackground>
+              </View>
+
+              <View className="p-5">
+                {isLoading ? (
+                  <View className="gap-5">
+                    {/* AI Text Skeleton */}
+                    <View className="bg-transparent p-1 relative mb-2">
+                      <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ position: 'absolute', top: 2, left: 0 }} />
+                      <View className="pl-7 gap-2">
+                        <PulseView style={{ width: '95%', height: 14, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                        <PulseView style={{ width: '70%', height: 14, backgroundColor: '#cbd5e1', borderRadius: 4 }} />
+                      </View>
+                    </View>
+                    {/* Stock Predictions Skeleton */}
+                    <View>
+                      <PulseView style={{ width: 140, height: 16, backgroundColor: '#cbd5e1', borderRadius: 4, marginBottom: 12 }} />
+                      <View className="flex-row flex-wrap justify-between gap-y-3">
+                        {[1, 2, 3, 4].map((i) => (
+                          <View key={i} style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                            <PulseView style={{ width: 70, height: 12, backgroundColor: '#cbd5e1', borderRadius: 4, marginBottom: 8 }} />
+                            <PulseView style={{ width: 35, height: 22, backgroundColor: '#cbd5e1', borderRadius: 6 }} />
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                ) : prediction ? (
+                  <View className="gap-5">
+                    {/* AI Text */}
+                    <View className="bg-transparent p-1 relative mb-2">
+                      <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ position: 'absolute', top: 2, left: 0 }} />
+                      <Text className="font-sans text-navy-800 leading-relaxed text-[13px] pl-7">
+                        {prediction.ai_suggestion_text.replace(/\*/g, '•')}
+                      </Text>
+                    </View>
+
+                    {/* JSON Prediction Values */}
+                    <View>
+                      <Text className="font-sans-bold text-slate-700 mb-3 text-sm">
+                        Target Persiapan Stok:
+                      </Text>
+                      <View className="flex-row flex-wrap justify-between gap-y-3">
+                        {Object.entries(prediction.recommended_stock).map(([key, value]) => (
+                          <View key={key} style={{ width: '48%' }} className="bg-white border border-slate-200 rounded-xl px-2 py-3 items-center justify-center shadow-sm">
+                            <Text className="font-sans-semibold text-slate-500 text-[11px] uppercase mb-1 text-center" numberOfLines={1}>
+                              {key.replace(/_/g, " ")}
+                            </Text>
+                            <Text className="font-sans-bold text-orange-600 text-2xl">
+                              {value}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+
+                    {/* Nearby Events */}
+                    {prediction.nearby_events && prediction.nearby_events.length > 0 && (
+                      <View className="mt-2">
+                        <Text className="font-sans-bold text-slate-700 mb-2 text-sm">
+                          Event di Sekitar Anda Hari Ini:
+                        </Text>
+                        {prediction.nearby_events.map((ev, idx) => (
+                          <View key={idx} className="flex-row items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2">
+                            <View className="mr-2">
+                              <Ionicons name="calendar" size={20} color="#22548C" />
+                            </View>
+                            <View className="flex-1">
+                              <Text className="font-sans-bold text-slate-700 text-[14px]">{ev.name}</Text>
+                              <Text className="font-sans text-slate-500 text-xs mt-0.5 capitalize">
+                                {ev.estimated_attendee_count} Pengunjung • {ev.genre}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View className="items-center py-6 px-4">
+                    <Ionicons name="analytics-outline" size={48} color="#cbd5e1" />
+                    <Text className="font-sans-semibold text-slate-500 mt-4 text-center">
+                      Belum ada rekomendasi stok untuk hari ini.
+                    </Text>
+                    <Text className="font-sans text-slate-400 text-sm mt-1 text-center leading-relaxed">
+                      Sistem akan menghitung otomatis berdasarkan data baseline inventory, cuaca, dan keramaian.
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Animated.ScrollView>
     </View>
   );
+}
+
+function PulseView({ style }: { style?: any }) {
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.7,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.3,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [pulseAnim]);
+
+  return <Animated.View style={[style, { opacity: pulseAnim }]} />;
 }
