@@ -17,6 +17,7 @@ const BAKUL_ITEMS: NavItem[] = [
   { href: "/(bakul)/dashboard", icon: "chart-simple", label: "Beranda" },
   { href: "/(bakul)/pos", icon: "cash-register", label: "Kasir" },
   { href: "/(bakul)/catalog", icon: "book-open", label: "Katalog" },
+  { href: "/(bakul)/promo", icon: "gift", label: "Promo" },
   { href: "/(bakul)/my-store", icon: "store", label: "Toko" },
 ];
 
@@ -35,7 +36,7 @@ export function BottomNav({ mode }: { mode: "dolan" | "bakul" | "admin" }) {
     ? DOLAN_ITEMS 
     : mode === "bakul"
       ? BAKUL_ITEMS.filter(item => {
-          if (item.href === "/(bakul)/my-store") return user?.has_merchant_profile;
+          if (item.href === "/(bakul)/my-store" || item.href === "/(bakul)/promo") return user?.has_merchant_profile;
           return true;
         })
       : ADMIN_ITEMS;
