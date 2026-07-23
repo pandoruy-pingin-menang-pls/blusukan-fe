@@ -191,14 +191,26 @@ export default function ItineraryResultScreen() {
     <View className="flex-1 bg-slate-50">
       {/* Header */}
       <View className="bg-white px-5 pt-14 pb-4 border-b border-slate-200 flex-row items-center gap-4 z-10">
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 bg-slate-100 rounded-full items-center justify-center"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'white',
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}
         >
-          <Ionicons name="arrow-back" size={22} color="#1e293b" />
+          <Ionicons name="arrow-back-outline" size={24} color="#22548C" />
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className="font-sans-bold text-navy-900 text-lg">
+          <Text className="font-playfair font-semibold tracking-wide text-navy-900 text-xl">
             Hasil Rute Dolan
           </Text>
           <Text className="font-sans text-ink-soft text-xs" numberOfLines={1}>
@@ -224,14 +236,26 @@ export default function ItineraryResultScreen() {
         <View className="px-5 pt-6 pb-24">
           <View className="flex-row items-center justify-between mb-6">
             <View>
-              <Text className="font-sans-bold text-navy-900 text-xl">Daftar Kunjungan</Text>
+              <Text className="font-playfair font-semibold tracking-wide text-navy-900 text-2xl">Daftar Kunjungan</Text>
               <Text className="font-sans text-ink-soft text-sm mt-1">
                 {itinerary.waypoints.length} lokasi tujuan
               </Text>
             </View>
-            <View className="bg-orange-100 px-4 py-2 rounded-2xl items-center flex-row gap-1.5">
-              <Ionicons name="time-outline" size={16} color="#BA5E12" />
-              <Text className="font-sans-bold text-orange-800 text-sm">
+            <View className="flex-row items-center gap-1.5">
+              <Ionicons 
+                name="time-outline" 
+                size={16} 
+                color={
+                  itinerary.estimated_duration_minutes < 10 ? '#16A34A' :
+                  itinerary.estimated_duration_minutes < 30 ? '#CA8A04' : '#DC2626'
+                } 
+              />
+              <Text 
+                className={`font-sans-bold text-sm ${
+                  itinerary.estimated_duration_minutes < 10 ? 'text-green-600' :
+                  itinerary.estimated_duration_minutes < 30 ? 'text-yellow-600' : 'text-red-600'
+                }`}
+              >
                 ~{itinerary.estimated_duration_minutes} mnt
               </Text>
             </View>
