@@ -1,8 +1,9 @@
-import { Stack } from "expo-router";
+import { Stack, useSegments, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
+import "../services/apiClient";
 import {
   PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold,
@@ -35,7 +36,9 @@ export default function RootLayout() {
     PlayfairDisplay_700Bold,
   });
 
-  const { restoreSession, isLoadingAuth } = useAppStore();
+  const { restoreSession, isLoadingAuth, user, isLoggedIn } = useAppStore();
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
     restoreSession();
@@ -47,7 +50,38 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, isLoadingAuth]);
 
-  if (!fontsLoaded || isLoadingAuth) return null;
+  // RBAC Redirect Guard
+  useEffect(() => {
+    if (isLoadingAuth) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inAdminGroup = segments[0] === "(admin)";
+    const inBakulGroup = segments[0] === "(bakul)";
+    const inDolanGroup = segments[0] === "(dolan)";
+
+    if (!isLoggedIn) {
+      // If not logged in and not in auth group or index, redirect to login
+      if (!inAuthGroup && segments[0] !== "onboarding") {
+        router.replace("/(auth)/login");
+      }
+    } else if (user) {
+      // If logged in, enforce role restrictions
+      if (user.role === "admin" && !inAdminGroup) {
+        router.replace("/(admin)");
+      } else if (user.role === "pedagang" && inAdminGroup) {
+        router.replace("/(bakul)");
+      } else if (user.role === "wisatawan" && inAdminGroup) {
+        router.replace("/(dolan)");
+      }
+      
+      // Also if they are in auth group but already logged in
+      if (inAuthGroup) {
+        if (user.role === "admin") router.replace("/(admin)");
+        else if (user.role === "pedagang") router.replace("/(bakul)");
+        else router.replace("/(dolan)");
+      }
+    }
+  }, [isLoggedIn, user, segments, isLoadingAuth]);
 
   return (
     <>

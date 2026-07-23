@@ -18,6 +18,8 @@ type AppState = {
   isLoggedIn: boolean;
   setIsLoggedIn: (status: boolean) => void;
   isLoadingAuth: boolean;
+  merchant_id: string | null;
+  setMerchantId: (id: string | null) => void;
   
   logout: () => Promise<void>;
   restoreSession: () => Promise<void>;
@@ -32,6 +34,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoggedIn: false,
   setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
   isLoadingAuth: true,
+  merchant_id: null,
+  setMerchantId: (merchant_id) => set({ merchant_id }),
   
   logout: async () => {
     try {
@@ -60,12 +64,25 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (token) {
         const userStr = await getToken("user_data");
         if (userStr) {
-          set({ user: JSON.parse(userStr), isLoggedIn: true });
+          const user = JSON.parse(userStr);
+          set({ user, isLoggedIn: true });
+          
+          if (user.role === "pedagang" || user.has_merchant_profile) {
+            try {
+              const { data } = await axios.get(
+                `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/merchants/me`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              set({ merchant_id: data.id });
+            } catch (err) {
+              console.error("Failed to fetch merchant id on restore:", err);
+            }
+          }
         } else {
           set({ isLoggedIn: true });
         }
       } else {
-        set({ isLoggedIn: false, user: null });
+        set({ isLoggedIn: false, user: null, merchant_id: null });
       }
     } catch (e) {
       set({ isLoggedIn: false, user: null });
@@ -83,7 +100,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       await saveToken("access_token", data.access_token);
       await saveToken("refresh_token", data.refresh_token);
       await saveToken("user_data", JSON.stringify(data.user));
-      set({ user: data.user, isLoggedIn: true });
+      
+      let mId = null;
+      if (data.user.role === "pedagang" || data.user.has_merchant_profile) {
+        try {
+          const mData = await axios.get(
+            `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/merchants/me`,
+            { headers: { Authorization: `Bearer ${data.access_token}` } }
+          );
+          mId = mData.data.id;
+        } catch (e) {
+          console.error("Failed to fetch merchant id on login", e);
+        }
+      }
+      
+      set({ user: data.user, isLoggedIn: true, merchant_id: mId });
     } catch (error) {
       console.error("Login API Error:", error);
       throw error;
@@ -129,7 +160,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         await saveToken("user_data", JSON.stringify(updatedUser));
       }
       
-      set({ user: updatedUser, isLoggedIn: true });
+      set({ user: updatedUser, isLoggedIn: true, merchant_id: data.id });
     } catch (error) {
       console.error("Register Merchant API Error:", error);
       throw error;
