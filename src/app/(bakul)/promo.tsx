@@ -31,6 +31,11 @@ export default function PromoScreen() {
   const [promoMessage, setPromoMessage] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle"|"success"|"error">("idle");
   const [promosList, setPromosList] = useState<any[]>([]);
+  const [filterStatus, setFilterStatus] = useState<"Semua" | "Aktif" | "Nonaktif">("Semua");
+
+  const filteredPromos = filterStatus === "Semua" 
+    ? promosList 
+    : promosList.filter((p: any) => filterStatus === "Aktif" ? p.is_active : !p.is_active);
 
   const fetchStoreProfile = async () => {
     setIsLoading(true);
@@ -276,25 +281,47 @@ export default function PromoScreen() {
 
                   {/* Daftar Promo Aktif */}
                   <View className="bg-white/95 rounded-3xl p-6 border border-slate-200 shadow-sm mb-6">
-                    <View className="flex-row items-center gap-3 mb-4 border-b border-slate-100 pb-4">
-                      <View>
-                        <Ionicons name="list-outline" size={28} color="#22548C" />
+                      <View className="flex-row items-center gap-3 mb-4 border-b border-slate-100 pb-4">
+                        <View>
+                          <Ionicons name="list-outline" size={28} color="#22548C" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-sans-bold text-navy-900 text-lg">
+                            Daftar Promo Saya
+                          </Text>
+                        </View>
                       </View>
-                      <View className="flex-1">
-                        <Text className="font-sans-bold text-navy-900 text-lg">
-                          Daftar Promo Saya
-                        </Text>
-                      </View>
-                    </View>
 
-                    {promosList.length === 0 ? (
-                      <Text className="text-sm font-sans text-slate-500 text-center py-4">
-                        Belum ada promo yang dibuat.
-                      </Text>
-                    ) : (
-                      promosList.map((promo: any) => (
-                        <View key={promo.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-3">
-                          <View className="flex-row justify-between items-center mb-2">
+                      {promosList.length > 0 && (
+                        <View className="mb-4">
+                          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                            {["Semua", "Aktif", "Nonaktif"].map((status) => (
+                              <TouchableOpacity
+                                key={status}
+                                onPress={() => setFilterStatus(status as any)}
+                                className={`px-4 py-2 rounded-full border ${filterStatus === status ? 'bg-navy-900 border-navy-900' : 'bg-slate-50 border-slate-200'}`}
+                              >
+                                <Text className={`font-sans-bold text-sm ${filterStatus === status ? 'text-white' : 'text-slate-600'}`}>
+                                  {status}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
+
+                      {promosList.length === 0 ? (
+                        <Text className="text-sm font-sans text-slate-500 text-center py-4">
+                          Belum ada promo yang dibuat.
+                        </Text>
+                      ) : filteredPromos.length === 0 ? (
+                        <Text className="text-sm font-sans text-slate-500 text-center py-4">
+                          Tidak ada promo dengan status {filterStatus}.
+                        </Text>
+                      ) : (
+                        filteredPromos.map((promo: any) => (
+                          <View key={promo.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-3">
+                            <View className="flex-row justify-between items-center mb-2">
                             <Text className="font-sans-bold text-navy-900 text-[15px] flex-1">
                               {promo.title}
                             </Text>
