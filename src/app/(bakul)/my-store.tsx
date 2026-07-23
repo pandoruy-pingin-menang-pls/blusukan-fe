@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
-  Switch
+  Switch,
+  Image
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,6 +18,7 @@ import { getToken } from "../../utils/secureStore";
 import { Alert } from "../../components/ui/Alert";
 import apiClient from "../../services/apiClient";
 import { useAppStore } from "../../store/useAppStore";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type MerchantProfile = {
   id: string;
@@ -43,6 +45,7 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export default function MyStoreScreen() {
+  const insets = useSafeAreaInsets();
   const merchant_id = useAppStore(state => state.merchant_id);
   const [store, setStore] = useState<MerchantProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,28 +117,67 @@ export default function MyStoreScreen() {
         colors={["#FDEBD0", "#D6EAF8"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
+        style={[StyleSheet.absoluteFill, { zIndex: -2 }]}
       />
 
+      {/* Top Navy Gradient Section (Wave Background) */}
+      <LinearGradient
+        colors={['#1E3A8A', '#0F2A4A']}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 170,
+          zIndex: 0,
+          overflow: "hidden"
+        }}
+      >
+        <Image
+          source={require("../../../assets/edit-profile-wave.png")}
+          style={{ width: '100%', height: '100%', opacity: 0.3 }}
+          resizeMode="cover"
+        />
+      </LinearGradient>
+
+      {/* Fixed Header Text */}
+      <View 
+        style={{
+          position: "absolute",
+          top: insets.top + 25,
+          left: 24,
+          right: 24,
+          zIndex: 10
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 32,
+            letterSpacing: 1,
+            fontFamily: 'PlayfairDisplay_700Bold'
+          }}
+          className="text-white mb-2"
+        >
+          Profil
+        </Text>
+        <Text className="text-base font-sans text-white/80" numberOfLines={1}>
+          {(store?.description && store.description.toLowerCase() !== "string") ? store.description : "Kelola informasi dan stok toko Anda"}
+        </Text>
+      </View>
+
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }}
+        style={{ flex: 1, backgroundColor: 'transparent', zIndex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 130 + insets.top, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900 mb-2">
-          Toko Saya
-        </Text>
-        <Text className="text-[15px] font-sans text-ink-soft mb-8">
-          Kelola informasi dan stok toko Anda
-        </Text>
-
         <Alert message={error} type="error" />
 
         <View style={{ display: isLoading ? 'flex' : 'none', flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 }}>
-          <ActivityIndicator size="large" color="#22548C" />
+          <ActivityIndicator size="large" color="#ffffff" />
         </View>
 
-        <View style={{ display: (!isLoading && store) ? 'flex' : 'none', width: '100%' }}>
+        <View style={{ display: (!isLoading && store) ? 'flex' : 'none', width: '100%', marginTop: 20 }}>
           {store && (
             <>
               {/* Profile Card */}

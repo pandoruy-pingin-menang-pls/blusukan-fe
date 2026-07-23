@@ -8,11 +8,13 @@ export default function BakulLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const isDashboard = pathname === "/(bakul)/dashboard" || pathname === "/dashboard";
+  const isMyStore = pathname === "/(bakul)/my-store" || pathname === "/my-store";
+  const noTopPadding = isDashboard || isMyStore;
 
   return (
     <View className="flex-1 bg-white">
       <TopBar />
-      <View className="flex-1" style={{ paddingTop: isDashboard ? 0 : insets.top }}>
+      <View className="flex-1" style={{ paddingTop: noTopPadding ? 0 : insets.top }}>
         <Slot />
       </View>
       <BottomNav mode="bakul" />
