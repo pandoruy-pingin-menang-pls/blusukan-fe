@@ -170,7 +170,7 @@ export const Onboarding = () => {
             >
               <Image
                 source={item.image}
-                style={{ width: SCREEN_WIDTH * 0.8, height: SCREEN_WIDTH * 0.8 }}
+                style={{ width: SCREEN_WIDTH * 0.5, height: SCREEN_WIDTH * 0.5 }}
                 resizeMode="contain"
                 accessibilityLabel={`Ilustrasi ${item.title}`}
                 className="mb-8"
