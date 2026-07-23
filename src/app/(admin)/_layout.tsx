@@ -1,11 +1,16 @@
 import { View, ImageBackground } from "react-native";
-import { Slot, Redirect } from "expo-router";
+import { Slot, Redirect, usePathname } from "expo-router";
 import { TopBar } from "@/components/layout/TopBar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { useAppStore } from "@/store/useAppStore";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AdminLayout() {
   const user = useAppStore((state) => state.user);
+  const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  
+  const isDashboard = pathname === "/dashboard" || pathname === "/(admin)/dashboard";
 
   if (user?.role !== "admin") {
     return <Redirect href="/(auth)/login" />;
@@ -19,8 +24,8 @@ export default function AdminLayout() {
       resizeMode="repeat"
     >
       <View className="flex-1 bg-surface/60">
-        <TopBar />
-        <View className="flex-1">
+        {!isDashboard && <TopBar />}
+        <View className="flex-1" style={{ paddingTop: isDashboard ? 0 : insets.top }}>
           <Slot />
         </View>
         <BottomNav mode="admin" />

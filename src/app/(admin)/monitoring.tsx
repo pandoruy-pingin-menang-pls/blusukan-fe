@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Pressable, Alert, ImageBackground } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAppStore } from "@/store/useAppStore";
@@ -224,8 +225,28 @@ export default function MonitoringDashboard() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
-      <Text className="text-2xl font-sans-bold text-navy-900 mb-6">Smart Monitoring Dashboard</Text>
+    <View className="flex-1 bg-surface">
+      <LinearGradient
+        colors={['#1E3A8A', '#0F2A4A']}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 180,
+          zIndex: 0,
+          overflow: "hidden"
+        }}
+      >
+        <ImageBackground 
+          source={require("../../../assets/edit-profile-wave.png")}
+          style={{ width: '100%', height: '100%' }}
+          imageStyle={{ opacity: 0.3 }}
+          resizeMode="cover"
+        />
+      </LinearGradient>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 100, paddingTop: 120 }}>
+        <Text className="text-[32px] font-playfair font-semibold tracking-wide text-white mb-6">Smart Monitoring Dashboard</Text>
       
       {/* Smart Impact Alert */}
       {renderConditionAlert()}
@@ -242,15 +263,15 @@ export default function MonitoringDashboard() {
       
       <View className="flex-row gap-4 mb-6">
         <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <View className="w-8 h-8 rounded-full bg-orange-50 items-center justify-center mb-3">
-            <Ionicons name="people" size={16} color="#BA5E12" />
+          <View className="mb-3">
+            <Ionicons name="people" size={24} color="#BA5E12" />
           </View>
           <Text className="text-slate-500 text-xs font-sans-medium mb-1">Active Users Today</Text>
           <Text className="text-3xl font-sans-bold text-navy-900">{stats?.active_users_today || 0}</Text>
         </View>
         <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <View className="w-8 h-8 rounded-full bg-navy-50 items-center justify-center mb-3">
-            <Ionicons name="pulse" size={16} color="#14335A" />
+          <View className="mb-3">
+            <Ionicons name="pulse" size={24} color="#14335A" />
           </View>
           <Text className="text-slate-500 text-xs font-sans-medium mb-1">Total Activities</Text>
           <Text className="text-3xl font-sans-bold text-navy-900">{stats?.total_activities_today || 0}</Text>
@@ -353,8 +374,8 @@ export default function MonitoringDashboard() {
                   </View>
                   <View className="flex-row items-center mb-1.5 gap-2">
                     <Text className="text-[11px] font-sans text-slate-500">Kategori: <Text className="font-sans-medium text-slate-700 capitalize">{log.category}</Text></Text>
-                    <View className={`px-1.5 py-0.5 rounded ${log.priority === 'High' ? 'bg-red-50' : 'bg-slate-100'}`}>
-                       <Text className={`text-[9px] font-sans-semibold ${log.priority === 'High' ? 'text-red-600' : 'text-slate-500'}`}>Prioritas: {log.priority}</Text>
+                    <View className={`px-1.5 py-0.5 rounded ${log.priority === 'High' ? 'bg-orange-50' : 'bg-slate-100'}`}>
+                       <Text className={`text-[9px] font-sans-semibold ${log.priority === 'High' ? 'text-[#BA5E12]' : 'text-slate-500'}`}>Prioritas: {log.priority}</Text>
                     </View>
                   </View>
                   <View className="flex-row items-center">
@@ -379,5 +400,6 @@ export default function MonitoringDashboard() {
         )}
       </View>
     </ScrollView>
+    </View>
   );
 }
