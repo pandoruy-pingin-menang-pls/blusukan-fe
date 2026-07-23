@@ -5,8 +5,13 @@
     "version": "1.0.0",
     "scheme": "blusukan",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/blusukan-logo.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/blusukan-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E6F4FE"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -14,14 +19,14 @@
       "package": "com.bytesfest.blusukan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "foregroundImage": "./assets/blusukan-logo.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/blusukan-logo.png"
     },
     "plugins": [
       "expo-router",
