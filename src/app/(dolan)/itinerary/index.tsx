@@ -7,8 +7,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  Image
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +35,66 @@ const FILTER_OPTIONS = [
   { label: "< 1 Tahun", value: "year" },
 ];
 
+const HistoryCard = ({ item }: { item: ItineraryItem }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  return (
+    <View className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+      <TouchableOpacity 
+        onPress={() => router.push(`/(dolan)/itinerary/${item.id}`)}
+        activeOpacity={0.9}
+      >
+        <View className="bg-navy-900 relative">
+          <ImageBackground
+            source={require("../../../../assets/dashboard-batik-overlay.png")}
+            style={{ paddingHorizontal: 16, paddingVertical: 14, minHeight: 64, justifyContent: 'center' }}
+            imageStyle={{ opacity: 0.4 }}
+            resizeMode="cover"
+          >
+            <Text className="font-sans-bold text-white text-[15px] leading-6 pr-4" numberOfLines={2}>
+              "{item.raw_query || "Rute Tanpa Judul"}"
+            </Text>
+          </ImageBackground>
+        </View>
+      </TouchableOpacity>
+      
+      <View className="flex-row items-center justify-between px-4 py-3 bg-white">
+        <Text className="font-sans text-slate-500 text-xs">
+          {new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+        </Text>
+        <View className="flex-row items-center gap-2">
+          <View className="border border-slate-300 px-3 py-1.5 rounded-lg">
+            <Text className="font-sans-semibold text-slate-600 text-[10px] uppercase">
+              {item.waypoints?.length || 0} Tempat
+            </Text>
+          </View>
+          <TouchableOpacity 
+            onPress={() => setExpanded(!expanded)} 
+            className="p-1 rounded-full bg-slate-50 border border-slate-100"
+          >
+            <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color="#475569" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {expanded && item.waypoints && item.waypoints.length > 0 && (
+        <View className="px-4 pb-4 bg-white border-t border-slate-100 pt-3 gap-3">
+          {item.waypoints.map((wp, idx) => (
+            <View key={idx} className="flex-row items-start gap-3">
+              <View className="w-6 h-6 rounded-full bg-orange-50 items-center justify-center border border-orange-100 mt-0.5">
+                <Text className="font-sans-bold text-orange-600 text-[10px]">{idx + 1}</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="font-sans-semibold text-navy-800 text-[13px] leading-5">{wp.name}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default function ItineraryInputScreen() {
   const { search } = useLocalSearchParams<{ search?: string }>();
   const [query, setQuery] = useState(search || "");
@@ -42,6 +104,7 @@ export default function ItineraryInputScreen() {
   // History State
   const [itineraries, setItineraries] = useState<ItineraryItem[]>([]);
   const [filterTime, setFilterTime] = useState<string>("any");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
@@ -195,7 +258,7 @@ export default function ItineraryInputScreen() {
             Mau Dolan ke Mana?
           </Text>
           <Text className="text-[15px] font-sans text-ink-soft mb-8">
-            Ceritakan rencanamu, dan AI Blusukan akan menyusun rute terbaik khusus untukmu.
+            Ceritakan rencanamu, dan Mblus akan menyusun rute terbaik khusus untukmu.
           </Text>
         </View>
 
@@ -229,7 +292,7 @@ export default function ItineraryInputScreen() {
               Meminta petunjuk...
             </Text>
             <Text className="font-sans text-ink-soft text-xs mt-1 text-center px-4">
-              AI sedang menganalisis lokasi dan mencari tempat terbaik untukmu
+              Mblus sedang menganalisis lokasi dan mencari tempat terbaik untukmu
             </Text>
           </View>
 
@@ -265,36 +328,43 @@ export default function ItineraryInputScreen() {
 
         {/* Riwayat Perjalanan Section */}
         <View className="mt-8 mb-12">
-          <Text className="text-xl font-playfair font-semibold text-navy-900 mb-4 ml-2">
-            Riwayat Perjalanan
-          </Text>
-
-          {/* Filters */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-6 px-6">
-            <View className="flex-row gap-2 px-1">
-              {FILTER_OPTIONS.map((opt) => {
-                const isActive = filterTime === opt.value;
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    onPress={() => setFilterTime(opt.value)}
-                    className={`px-4 py-2 rounded-full border ${
-                      isActive 
-                        ? 'bg-navy-900 border-navy-900' 
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <Text className={`text-sm font-sans-semibold ${
-                      isActive ? 'text-white' : 'text-slate-600'
-                    }`}>
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-xl font-playfair font-semibold text-navy-900 ml-2">
+              Riwayat Perjalanan
+            </Text>
+            
+            <View className="relative z-50">
+              <TouchableOpacity
+                onPress={() => setIsFilterOpen(!isFilterOpen)}
+                className="bg-white border border-slate-200 rounded-xl px-3 py-2 flex-row items-center justify-between w-36 h-10 shadow-sm"
+                activeOpacity={0.8}
+              >
+                <Text className="text-slate-700 font-sans-semibold text-xs">
+                  {FILTER_OPTIONS.find(opt => opt.value === filterTime)?.label || "Semua"}
+                </Text>
+                <Ionicons name={isFilterOpen ? "chevron-up" : "chevron-down"} size={16} color="#22548C" />
+              </TouchableOpacity>
+              
+              {isFilterOpen && (
+                <View className="absolute right-0 top-11 bg-white border border-slate-200 rounded-xl shadow-lg w-36 z-50 overflow-hidden">
+                  {FILTER_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      onPress={() => {
+                        setFilterTime(opt.value);
+                        setIsFilterOpen(false);
+                      }}
+                      className="px-3 py-2.5 border-b border-slate-100 active:bg-slate-50"
+                    >
+                      <Text className="text-slate-700 font-sans text-xs">
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
-            <View style={{ width: 40 }} />
-          </ScrollView>
+          </View>
 
           {/* History List */}
           {isHistoryLoading ? (
@@ -306,19 +376,7 @@ export default function ItineraryInputScreen() {
           ) : (
             <View className="gap-3">
               {paginatedItineraries.map((item) => (
-                <View key={item.id} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <Text className="font-sans-bold text-navy-900 text-[15px] mb-2 leading-6" numberOfLines={3}>
-                    {item.raw_query || "Rute Tanpa Judul"}
-                  </Text>
-                  <View className="flex-row items-center justify-between mt-2 pt-3 border-t border-slate-50">
-                    <Text className="font-sans text-slate-500 text-xs">
-                      {new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                    </Text>
-                    <Text className="font-sans-semibold text-orange-600 text-xs bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
-                      {item.waypoints?.length || 0} Tempat
-                    </Text>
-                  </View>
-                </View>
+                <HistoryCard key={item.id} item={item} />
               ))}
             </View>
           )}
