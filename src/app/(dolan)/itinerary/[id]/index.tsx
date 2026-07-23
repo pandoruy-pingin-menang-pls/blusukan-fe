@@ -68,24 +68,25 @@ export default function ItineraryResultScreen() {
   }, [id]);
 
   const handleStart = async () => {
-    if (!id || !itinerary) return;
+    const itineraryId = Array.isArray(id) ? id[0] : id;
+    if (!itineraryId) return;
     
     setIsStarting(true);
-    setError("");
-
     try {
       const token = await getToken("access_token");
       await axios.patch(
-        `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/itineraries/${id}/start`,
+        `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/itineraries/${itineraryId}/start`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       // Update status lokal atau langsung redirect
-      setItinerary({ ...itinerary, status: "in_progress" });
+      if (itinerary) {
+        setItinerary({ ...itinerary, status: "in_progress" });
+      }
       
       // Redirect ke halaman progress
-      router.push(`/(dolan)/itinerary/${id}/progress`);
+      router.push(`/(dolan)/itinerary/${itineraryId}/progress`);
       
     } catch (err: any) {
       setError("Gagal memulai perjalanan.");
@@ -279,7 +280,10 @@ export default function ItineraryResultScreen() {
       </ScrollView>
 
       {/* Floating Bottom Button */}
-      <View className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <View 
+        className="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
+        style={{ zIndex: 50, elevation: 5 }}
+      >
         <TouchableOpacity 
           onPress={itinerary.status === "in_progress" ? () => router.push(`/(dolan)/itinerary/${id}/progress`) : handleStart}
           disabled={isStarting}
