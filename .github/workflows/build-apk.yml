@@ -48,6 +48,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Fix PNG compatibility (strip ICC profiles)
+        run: |
+          sudo apt-get install -y imagemagick
+          find ./assets -name "*.png" -exec mogrify -strip -type TrueColor {} \;
+
       - name: Build APK (EAS Local)
         run: eas build --platform android --profile preview --local --non-interactive --output blusukan.apk
 
