@@ -109,30 +109,14 @@ export default function BakulDashboardScreen() {
         style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
       />
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40, paddingTop: 16 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40, paddingTop: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={["#14335A"]} />}
       >
-        <View className="mb-6 flex-row justify-between items-center">
-          <View>
-            <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900">
-              Beranda
-            </Text>
-            {merchantData && (
-               <Text className="text-[16px] font-sans text-ink-soft">
-                 Sugeng rawuh, <Text className="font-sans-bold">{merchantData.name}</Text>
-               </Text>
-            )}
-          </View>
-          <TouchableOpacity 
-            onPress={async () => {
-              await logout();
-              router.replace("/(auth)/login");
-            }}
-            className="p-2"
-          >
-            <Ionicons name="log-out-outline" size={28} color="#ef4444" />
-          </TouchableOpacity>
+        <View className="mb-6">
+          <Text className="text-[32px] font-playfair font-semibold tracking-wide text-navy-900">
+            Siap jualan hari ini?
+          </Text>
         </View>
 
         <Alert message={errorMsg} type="error" />

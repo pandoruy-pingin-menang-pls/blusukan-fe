@@ -6,7 +6,8 @@ import {
   ImageBackground, 
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
+  TextInput
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,20 +28,20 @@ export default function BakulCatalogScreen() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   
   const merchant_id = useAppStore(state => state.merchant_id);
 
   const fetchCatalog = async () => {
     if (!merchant_id) {
+      setError("Profil toko belum dimuat.");
       setIsLoading(false);
-      setError("Gagal mendapatkan ID Toko. Silakan muat ulang aplikasi.");
       return;
     }
 
-    setIsLoading(true);
-    setError("");
-    
     try {
+      setIsLoading(true);
+      setError("");
       const { data } = await axios.get(
         `${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'}/api/merchants/${merchant_id}/catalog`
       );
@@ -59,14 +60,11 @@ export default function BakulCatalogScreen() {
   );
 
   const formatPrice = (price: string | number) => {
-    const num = typeof price === 'string' ? parseFloat(price) : price;
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(num || 0);
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return `Rp${numPrice.toLocaleString('id-ID')}`;
   };
+
+  const filteredItems = items.filter(i => i.item_name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <ImageBackground
@@ -92,10 +90,10 @@ export default function BakulCatalogScreen() {
           </Text>
         </View>
         <Text className="text-[15px] font-sans text-ink-soft mb-6">
-          Daftar menu yang tersedia untuk pelanggan.
+          Kelola produk yang Anda tawarkan ke turis
         </Text>
         
-        <View className="gap-3 mb-8 w-full">
+        <View className="gap-3 mb-6 w-full">
           <TouchableOpacity 
             className="w-full bg-navy-900 rounded-2xl py-4 items-center justify-center flex-row gap-2 shadow-sm"
             onPress={() => router.push("/(bakul)/catalog/ingest")}
@@ -103,7 +101,7 @@ export default function BakulCatalogScreen() {
           >
             <Ionicons name="camera" size={20} color="white" />
             <Text className="font-sans-bold text-white text-[16px]">
-              Tambah Menu via Foto (AI)
+              Foto Daftar Menu Baru
             </Text>
           </TouchableOpacity>
 
@@ -114,7 +112,7 @@ export default function BakulCatalogScreen() {
           >
             <Ionicons name="create-outline" size={20} color="#475569" />
             <Text className="font-sans-bold text-slate-600 text-[16px]">
-              Tambah Menu Manual
+              Input Manual Katalog
             </Text>
           </TouchableOpacity>
         </View>
@@ -133,35 +131,60 @@ export default function BakulCatalogScreen() {
                 Katalog masih kosong
               </Text>
               <Text className="font-sans text-slate-500 text-center mt-2">
-                Gunakan tombol di atas untuk memindai daftar menu dari foto secara otomatis.
+                Belum ada item katalog. Silakan tambahkan katalog produk Anda.
               </Text>
             </View>
           )}
 
           {!isLoading && items.length > 0 && (
-            <View className="gap-3 mb-8">
-              {items.map((item) => (
-                <View 
-                  key={item.id} 
-                  className="bg-white/90 rounded-2xl p-4 border border-slate-200 shadow-sm flex-row justify-between items-center"
-                >
-                  <View className="flex-1 pr-4">
-                    <Text className="font-sans-bold text-navy-900 text-lg mb-1">
-                      {item.item_name}
-                    </Text>
-                    <View className="flex-row items-center gap-1.5">
-                      <View className="bg-orange-100 px-2 py-0.5 rounded-full">
-                        <Text className="text-[10px] font-sans-semibold text-orange-700 uppercase tracking-wide">
-                          {item.category}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  <Text className="font-sans-bold text-[#BA5E12] text-lg">
-                    {formatPrice(item.price)}
-                  </Text>
+            <View>
+              <View className="mb-4">
+                <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                  <Ionicons name="search" size={20} color="#94a3b8" />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Cari nama produk..."
+                    placeholderTextColor="#94a3b8"
+                    className="flex-1 ml-2 font-sans text-navy-900 text-[15px] py-1"
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery("")}>
+                      <Ionicons name="close-circle" size={20} color="#94a3b8" />
+                    </TouchableOpacity>
+                  )}
                 </View>
-              ))}
+              </View>
+              <View className="gap-3 mb-8">
+                {filteredItems.length === 0 ? (
+                  <Text className="text-sm font-sans text-slate-500 text-center py-8">
+                    Tidak ada produk yang sesuai dengan pencarian Anda.
+                  </Text>
+                ) : (
+                  filteredItems.map((item) => (
+                    <View 
+                      key={item.id} 
+                      className="bg-white/90 rounded-2xl p-4 border border-slate-200 shadow-sm flex-row justify-between items-center"
+                    >
+                      <View className="flex-1 pr-4">
+                        <Text className="font-sans-bold text-navy-900 text-lg mb-1">
+                          {item.item_name}
+                        </Text>
+                        <View className="flex-row items-center gap-1.5">
+                          <View className="bg-orange-100 px-2 py-0.5 rounded-full">
+                            <Text className="text-[10px] font-sans-semibold text-orange-700 uppercase tracking-wide">
+                              {item.category}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Text className="font-sans-bold text-[#BA5E12] text-lg">
+                        {formatPrice(item.price)}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
             </View>
           )}
         </View>
